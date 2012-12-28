@@ -27,7 +27,9 @@ using System.Drawing;
 
 namespace SharpRL.Framework
 {
-
+    /// <summary>
+    /// Static utility methods for working with System.Drawing.Rectangle objects
+    /// </summary>
     public static class RectangleHelper
     {
         /// <summary>

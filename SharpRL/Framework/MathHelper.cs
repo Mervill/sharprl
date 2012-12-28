@@ -26,6 +26,9 @@ using System.Text;
 
 namespace SharpRL.Framework
 {
+    /// <summary>
+    /// Static utility class with various numerical methods
+    /// </summary>
     public static class MathHelper
     {
         /// <summary>

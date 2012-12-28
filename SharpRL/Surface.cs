@@ -36,15 +36,36 @@ namespace SharpRL
     /// </summary>
     public enum VerticalAlignment
     {
+        /// <summary>
+        /// String will be aligned to the top
+        /// </summary>
         Top,
+        /// <summary>
+        /// String will be centered between the top and bottom
+        /// </summary>
         Center,
+        /// <summary>
+        /// String will be aligned to the bottom
+        /// </summary>
         Bottom
     }
 
+    /// <summary>
+    /// Horizontal alignment used by various string printing methods
+    /// </summary>
     public enum HorizontalAlignment
     {
+        /// <summary>
+        /// String will be aligned to the left
+        /// </summary>
         Left,
+        /// <summary>
+        /// String will be centered between the right and the left
+        /// </summary>
         Center,
+        /// <summary>
+        /// String will be aligned to the right
+        /// </summary>
         Right
     }
 
@@ -68,7 +89,7 @@ namespace SharpRL
     }
 
     [Flags]
-    public enum BlitFlags
+    enum BlitFlags
     {
         UseChar = 1,
         UseFG = 2,
@@ -78,7 +99,9 @@ namespace SharpRL
 
     #endregion
 
-
+    /// <summary>
+    /// Represents a drawing surface and exposes methods to handle printing characters
+    /// </summary>
     public class Surface
     {
         internal Cell[] cells;
@@ -505,7 +528,7 @@ namespace SharpRL
         /// <param name="leftX"></param>
         /// <param name="leftY"></param>
         /// <param name="length"></param>
-        /// <param name="fore"></param>
+        /// <param name="fg"></param>
         /// <param name="bg"></param>
         public void DrawHorizontalLine(int leftX, int leftY, int length, Color fg, Color bg)
         {
@@ -519,7 +542,7 @@ namespace SharpRL
         /// <param name="leftX"></param>
         /// <param name="leftY"></param>
         /// <param name="length"></param>
-        /// <param name="fore"></param>
+        /// <param name="fg"></param>
         public void DrawHorizontalLine(int leftX, int leftY, int length, Color fg)
         {
             DrawHorizontalLine(leftX, leftY, length, fg, DefaultBackground);
@@ -545,9 +568,9 @@ namespace SharpRL
         /// <param name="topX"></param>
         /// <param name="topY"></param>
         /// <param name="length"></param>
-        /// <param name="c"></param>
-        /// <param name="fore"></param>
-        /// <param name="back"></param>
+        /// <param name="ch"></param>
+        /// <param name="fg"></param>
+        /// <param name="bg"></param>
         public void DrawVerticalLine(int topX, int topY, int length, char ch, Color fg, Color bg)
         {
             for (int i = 0; i < length; i++)
@@ -563,8 +586,8 @@ namespace SharpRL
         /// <param name="topX"></param>
         /// <param name="topY"></param>
         /// <param name="length"></param>
-        /// <param name="fore"></param>
-        /// <param name="back"></param>
+        /// <param name="fg"></param>
+        /// <param name="bg"></param>
         public void DrawVerticalLine(int topX, int topY, int length, Color fg, Color bg)
         {
             DrawVerticalLine(topX, topY, length, (char)SpecialChar.VerticalLine, fg, bg);
@@ -577,7 +600,7 @@ namespace SharpRL
         /// <param name="topX"></param>
         /// <param name="topY"></param>
         /// <param name="length"></param>
-        /// <param name="fore"></param>
+        /// <param name="fg"></param>
         public void DrawVerticalLine(int topX, int topY, int length, Color fg)
         {
             DrawVerticalLine(topX, topY, length, fg, DefaultBackground);
@@ -699,6 +722,8 @@ namespace SharpRL
         /// <param name="destX"></param>
         /// <param name="destY"></param>
         /// <param name="maskChar"></param>
+        /// <param name="maskFG"></param>
+        /// <param name="maskBG"></param>
         public static void BlitWithMask(Surface src, Rectangle srcRect, Surface dest, int destX, int destY,
             char maskChar, Color maskFG, Color maskBG)
         {
@@ -872,7 +897,7 @@ namespace SharpRL
 
         #region Private
 
-        protected virtual void SetCell(int cx, int cy, char? ch, Color? fg, Color? bg)
+        internal virtual void SetCell(int cx, int cy, char? ch, Color? fg, Color? bg)
         {
             if (cx < 0 || cx >= Width || cy < 0 || cy >= Height)
                 return;
@@ -1040,6 +1065,9 @@ namespace SharpRL
 
     }
 
+    /// <summary>
+    /// This the main drawing surface of a GameConsole.  It is used exactly as a normal Surface object.
+    /// </summary>
     public class RootSurface : Surface
     {
         internal byte[] dirty;
@@ -1053,7 +1081,7 @@ namespace SharpRL
             this.gameConsole = gameConsole;
         }
 
-        protected override void SetCell(int cx, int cy, char? ch, Color? fg, Color? bg)
+        internal override void SetCell(int cx, int cy, char? ch, Color? fg, Color? bg)
         {
             if (cx < 0 || cx >= Width || cy < 0 || cy >= Height)
                 return;
@@ -1062,6 +1090,9 @@ namespace SharpRL
             dirty[cx + cy * Width] = 1;
         }
 
+        /// <summary>
+        /// Clears the entire surface, using the default colors and character.
+        /// </summary>
         public override void Clear()
         {
             base.Clear();

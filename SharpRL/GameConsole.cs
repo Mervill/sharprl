@@ -27,6 +27,9 @@ using System.Drawing;
 
 namespace SharpRL
 {
+    /// <summary>
+    /// A GameConsole provides the main interface for working with SharpRL.
+    /// </summary>
     public class GameConsole : IDisposable
     {
         #region Private Fields
@@ -234,6 +237,7 @@ namespace SharpRL
         /// </summary>
         /// <param name="numColumns"></param>
         /// <param name="numRows"></param>
+        /// <param name="resizeWindowToFit"></param>
         public void SetRowsColumns(int numColumns, int numRows, bool resizeWindowToFit = true)
         {
             rowcolSize = new Size(numColumns, numRows);
@@ -618,6 +622,9 @@ namespace SharpRL
 
         #region Cleanup
 
+        /// <summary>
+        /// Dispose of the GameConsole and its underlying OpenGL resources
+        /// </summary>
         public void Dispose()
         {
             renderer.Dispose();

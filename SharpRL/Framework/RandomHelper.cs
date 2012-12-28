@@ -27,6 +27,9 @@ using System.Drawing;
 
 namespace SharpRL.Framework
 {
+    /// <summary>
+    /// Static utility class for working with System.Random objects
+    /// </summary>
     public static class RandomHelper
     {
         /// <summary>
@@ -85,6 +88,7 @@ namespace SharpRL.Framework
         /// <summary>
         /// Randomly chooses a single character from the provided string.
         /// </summary>
+        /// <param name="rnd"></param>
         /// <param name="str">Must not be null or empty, or this method will throw an ArgumentException</param>
         /// <returns></returns>
         public static char GetRandomCharacter(this Random rnd, string str)
@@ -122,6 +126,12 @@ namespace SharpRL.Framework
             return (int)ret;
         }
 
+        /// <summary>
+        /// Returns a random integer using the provided Dice object
+        /// </summary>
+        /// <param name="rnd"></param>
+        /// <param name="d"></param>
+        /// <returns></returns>
         public static int Roll(this Random rnd, Dice d)
         {
             int roll = 0;

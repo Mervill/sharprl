@@ -157,22 +157,33 @@ namespace SharpRL
         #endregion
 
         #region Overrides
+        /// <summary>
+        /// Check whether or not this object is equal to the other
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public override bool Equals(object obj)
         {
-            //if (obj == null)
-            //    return false;
-
             if (this.GetType() != obj.GetType())
                 return false;
 
             return Equals((Dice)obj);
         }
 
+        /// <summary>
+        /// Check whether or not this object is equal to the other
+        /// </summary>
+        /// <param name="d"></param>
+        /// <returns></returns>
         public bool Equals(Dice d)
         {
             return (this.ndice == d.ndice && this.nsides == d.nsides);
         }
 
+        /// <summary>
+        /// Returns a hash code for this object
+        /// </summary>
+        /// <returns></returns>
         public override int GetHashCode()
         {
             int hash = 7;
@@ -183,6 +194,10 @@ namespace SharpRL
             return hash;
         }
 
+        /// <summary>
+        /// Returns a friendly string representation of this object
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             System.Text.StringBuilder ret = new System.Text.StringBuilder(
@@ -203,7 +218,12 @@ namespace SharpRL
             return ret.ToString();
 
         }
-
+        /// <summary>
+        /// Check whether or not this object is equal to the other
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
         public static bool operator ==(Dice left, Dice right)
         {
             if (ReferenceEquals(left, null))
@@ -214,14 +234,31 @@ namespace SharpRL
             return (left.Equals(right));
         }
 
+        /// <summary>
+        /// Check whether this object is not-equal to the other
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
         public static bool operator !=(Dice left, Dice right)
         {
             return !(left == right);
         }
         #endregion
 
+        /// <summary>
+        /// A singe six-sided die
+        /// </summary>
         public static Dice _1d6 = new Dice(1, 6);
+
+        /// <summary>
+        /// Two six sided dice added together
+        /// </summary>
         public static Dice _2d6 = new Dice(2, 6);
+
+        /// <summary>
+        /// Three six-sided dice added together
+        /// </summary>
         public static Dice _3d6 = new Dice(3, 6);
 
     }

@@ -171,6 +171,7 @@ namespace SharpRL
         /// Tries to split this node at a position specified by size.  One of the split regions will be the
         /// specified size, the other region will take up the remainder of the area.
         /// </summary>
+        /// <param name="direction"></param>
         /// <param name="size"></param>
         /// <returns>Returns true if successful.  A split will fail if the position would fall outside
         /// the node's rectangle.

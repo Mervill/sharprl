@@ -72,6 +72,7 @@ namespace SharpRL
     /// </summary>
     public enum SpecialChar : byte
     {
+#pragma warning disable 1591
         HorizontalLine = 196,
         VerticalLine = 179,
         NorthEastLine = 191,
@@ -162,12 +163,14 @@ namespace SharpRL
         Power3 = 252,
         Power2 = 253,
         BulletSquare = 254
-
+#pragma warning restore 1591
     }
 
     #endregion
 
-
+    /// <summary>
+    /// Represents a set of font glyphs, and provides a mapping from an ASCII code to each glyph
+    /// </summary>
     public class FontSheet
     {
         #region Properties

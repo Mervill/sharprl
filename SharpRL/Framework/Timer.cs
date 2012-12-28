@@ -36,6 +36,9 @@ namespace SharpRL.Framework
     {
         IterateCollection<Timer> timers;
 
+        /// <summary>
+        /// Creates a new TimerCollection object
+        /// </summary>
         public TimerCollection()
         {
             timers = new IterateCollection<Timer>();

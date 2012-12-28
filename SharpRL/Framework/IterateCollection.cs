@@ -81,7 +81,7 @@ namespace SharpRL.Framework
         /// <summary>
         /// Returns true if the set collection contains the specified object
         /// </summary>
-        /// <param name="activeObj"></param>
+        /// <param name="item"></param>
         /// <returns></returns>
         public bool Contains(T item)
         {

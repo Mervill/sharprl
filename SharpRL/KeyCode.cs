@@ -23,6 +23,7 @@ using System;
 
 namespace SharpRL
 {
+#pragma warning disable 1591
     public enum KeyCode
     {
         Escape,
@@ -129,4 +130,5 @@ namespace SharpRL
         Keypad9,
         Char
     }
+#pragma warning restore 1591
 }

@@ -46,8 +46,18 @@ namespace SharpRL.Framework
     /// </summary>
     public enum RangeLimitShape
     {
+        /// <summary>
+        /// A field of view limited to a square shape
+        /// </summary>
         Square,
+        /// <summary>
+        /// A field of view limited to an octagonal shape
+        /// </summary>
         Octagon,
+        /// <summary>
+        /// A field of view limited to a circular shape.  Since calculating a circle takes extra operations,
+        /// this shape will (theoretically) be slower to use than the others
+        /// </summary>
         Circle
     }
 
@@ -161,7 +171,7 @@ namespace SharpRL.Framework
             }
         }
 
-        protected void ClearFov()
+        void ClearFov()
         {
             for (int y = 0; y < grid.Height; y++)
             {

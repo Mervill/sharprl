@@ -35,6 +35,9 @@ namespace SharpRL.Framework
     {
         IterateCollection<Interpolator> interps;
 
+        /// <summary>
+        /// Creates a new InterpolatorCollection object
+        /// </summary>
         public InterpolatorCollection()
         {
             interps = new IterateCollection<Interpolator>();

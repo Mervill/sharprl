@@ -27,6 +27,9 @@ using System.Drawing;
 
 namespace SharpRL.Framework
 {
+    /// <summary>
+    /// Static utility class for working with System.Drawing.Color objects
+    /// </summary>
     public static class ColorHelper
     {
         /// <summary>

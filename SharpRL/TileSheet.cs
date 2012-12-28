@@ -85,7 +85,8 @@ namespace SharpRL
         /// </summary>
         /// <param name="gameConsole"></param>
         /// <param name="bitmap"></param>
-        /// <param name="tileSize"></param>
+        /// <param name="tileWidth"></param>
+        /// <param name="tileHeight"></param>
         public TileSheet(GameConsole gameConsole, Bitmap bitmap, int tileWidth, int tileHeight)
         {
             Initialize(gameConsole, bitmap, tileWidth, tileHeight);

@@ -65,7 +65,7 @@ namespace SharpRL.Framework
         /// <summary>
         /// Push an object onto the PQ
         /// </summary>
-        /// <param name="O">The new object</param>
+        /// <param name="item">The new object</param>
         /// <returns>The index in the list where the object is _now_. This will change when objects are taken from or put onto the PQ.</returns>
         public int Push(T item)
         {

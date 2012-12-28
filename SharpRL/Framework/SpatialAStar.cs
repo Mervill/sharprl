@@ -58,7 +58,7 @@ namespace SharpRL.Framework
     /// To use, first implement an IPathCell class to be used as cells for the pathfinder.  A simple implementation
     /// might be something like this:
     /// <code>
-    ///   protected class Cell : IPathCell<object>
+    ///   protected class Cell : IPathCell&lt;object&gt;
     ///   {
     ///       public Cell(bool isWall, int x, int y)
     ///       {
@@ -285,29 +285,8 @@ namespace SharpRL.Framework
             }
         }
 
-        #endregion
 
-        #region Properties
-        /// <summary>
-        /// This is the same map instance used to construct the SpatialAStar instance.
-        /// </summary>
-        public Array2d<TPathNode> SearchSpace { get; private set; }
-
-        /// <summary>
-        /// The width ofthe map used to construct the SpatialAStar isntance.
-        /// </summary>
-        public int Width { get; private set; }
-
-        /// <summary>
-        /// The height of the map used to construct the SpatialAStar instance.
-        /// </summary>
-        public int Height { get; private set; }
-
-        #endregion
-
-        #region Protected
-
-        protected class PathNode : IPathCell<TUserContext>, IComparer<PathNode>, IIndexedObject
+        class PathNode : IPathCell<TUserContext>, IComparer<PathNode>, IIndexedObject
         {
             public static readonly PathNode Comparer = new PathNode(0, 0, default(TPathNode));
 
@@ -343,24 +322,12 @@ namespace SharpRL.Framework
             }
         }
 
-        /// <summary>
-        /// The default heristic uses trigonometric distance.  Override to use a different Heuristic.
-        /// </summary>
-        /// <param name="inStart"></param>
-        /// <param name="inEnd"></param>
-        /// <returns></returns>
-        protected virtual Double Heuristic(PathNode inStart, PathNode inEnd)
+        Double Heuristic(PathNode inStart, PathNode inEnd)
         {
             return Math.Sqrt((inStart.X - inEnd.X) * (inStart.X - inEnd.X) + (inStart.Y - inEnd.Y) * (inStart.Y - inEnd.Y));
         }
 
-        /// <summary>
-        /// Default neighbor distance uses trigonometric distance.  Override to change behavior.
-        /// </summary>
-        /// <param name="inStart"></param>
-        /// <param name="inEnd"></param>
-        /// <returns></returns>
-        protected virtual Double NeighborDistance(PathNode inStart, PathNode inEnd)
+        Double NeighborDistance(PathNode inStart, PathNode inEnd)
         {
             int diffX = Math.Abs(inStart.X - inEnd.X);
             int diffY = Math.Abs(inStart.Y - inEnd.Y);
@@ -374,6 +341,24 @@ namespace SharpRL.Framework
                     throw new ApplicationException();
             }
         }
+
+        #endregion
+
+        #region Properties
+        /// <summary>
+        /// This is the same map instance used to construct the SpatialAStar instance.
+        /// </summary>
+        public Array2d<TPathNode> SearchSpace { get; private set; }
+
+        /// <summary>
+        /// The width ofthe map used to construct the SpatialAStar isntance.
+        /// </summary>
+        public int Width { get; private set; }
+
+        /// <summary>
+        /// The height of the map used to construct the SpatialAStar instance.
+        /// </summary>
+        public int Height { get; private set; }
 
         #endregion
 

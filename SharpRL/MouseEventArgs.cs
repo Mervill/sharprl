@@ -23,14 +23,32 @@ using System;
 
 namespace SharpRL
 {
+    /// <summary>
+    /// Specifies a mouse button in a mouse input event
+    /// </summary>
     public enum MouseButton
     {
+        /// <summary>
+        /// No mouse button was involved in the event
+        /// </summary>
         None,
+        /// <summary>
+        /// The left mouse button was involved in the event
+        /// </summary>
         Left,
+        /// <summary>
+        /// The middle mouse button was involved in the event
+        /// </summary>
         Middle,
+        /// <summary>
+        /// The right mouse button was involved in the event
+        /// </summary>
         Right
     };
 
+    /// <summary>
+    /// Holds the information related to a mouse input event
+    /// </summary>
     public class MouseEventArgs : EventArgs
     {
         /// <summary>
@@ -53,6 +71,9 @@ namespace SharpRL
         /// </summary>
         public int CY { get; set; }
 
+        /// <summary>
+        /// Which mouse button is involved in the event
+        /// </summary>
         public MouseButton Button { get; set; }
 
     }

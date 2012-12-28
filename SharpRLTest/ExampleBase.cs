@@ -8,7 +8,6 @@ using System.Drawing;
 
 namespace SharpRLTest
 {
-    // This class will contain 
     abstract class ExampleBase
     {
         protected Surface surface;
