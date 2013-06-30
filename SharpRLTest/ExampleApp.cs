@@ -101,8 +101,8 @@ namespace SharpRLTest
             };
 
             // Hook into the key and mouse events provided by GameConsole
-            console.KeyDown += new EventHandler<KeyEventArgs>(Console_KeyDown);
-            console.MouseButtonDown += new EventHandler<MouseEventArgs>(console_MouseButtonClick);
+            console.KeyDown += new EventHandler<EventArgs<KeyRawEventData>>(Console_KeyDown);
+            console.MouseButtonDown += new EventHandler<EventArgs<MouseEventData>>(console_MouseButtonClick);
 
             // For animating the font name opacity, we use an interpolator coupled with a lambda to set
             // an opacity variable
@@ -117,29 +117,26 @@ namespace SharpRLTest
             // property manually (see DrawMenu and DrawFont methods below)
         }
 
-        void console_MouseButtonClick(object sender, MouseEventArgs e)
+        void console_MouseButtonClick(object sender, EventArgs<MouseEventData> e)
         {
             // If the mouse click happened inside the example area, then route
             // the event to the currently active example.
-            if (ExampleRect.Contains(e.CX, e.CY))
+            if (ExampleRect.Contains(e.Value.CX, e.Value.CY))
             {
-                MouseEventArgs args = new MouseEventArgs();
-                args.Button = e.Button;
-                args.PX = e.PX;
-                args.PY = e.PY;
-
                 // For convenience, we copy and modify the MouseEventArgs to transform
                 // the position to the examples' local coordinate system
-                args.CX = e.CX - ExampleRect.Left;
-                args.CY = e.CY - ExampleRect.Top;
+                var cx = e.Value.CX - ExampleRect.Left;
+                var cy = e.Value.CY - ExampleRect.Top;
 
-                examples[currentExample].OnMouseClick(args);
+                MouseEventData mInfo = new MouseEventData(cx, cy, e.Value.PX, e.Value.PY, e.Value.Button);
+
+                examples[currentExample].OnMouseClick(mInfo);
             }
         }
 
-        void Console_KeyDown(object sender, KeyEventArgs e)
+        void Console_KeyDown(object sender, EventArgs<KeyRawEventData> e)
         {
-            switch (e.Key)
+            switch (e.Value.Key)
             {
                 case KeyCode.F:
                     currentFont++;
@@ -203,7 +200,7 @@ namespace SharpRLTest
             }
 
             // Pass on the key event to the currently active example
-            examples[currentExample].OnKey(e);
+            examples[currentExample].OnKey(e.Value);
         }
 
         // This is our main entry into the game loop, called from our Main method
@@ -307,7 +304,7 @@ namespace SharpRLTest
                     // For the background, White if 0, Black if 1
                     Color menuBGColor = ColorHelper.Lerp(Color.White, Color.Black, val);
 
-                    console.Root.PrintString(0, i, str, menuFGColor, Color.Black);
+                    console.Root.PrintString(0, i, str, menuFGColor, menuBGColor);
                 }
             }
         }

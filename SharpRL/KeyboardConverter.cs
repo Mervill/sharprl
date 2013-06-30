@@ -27,20 +27,34 @@ namespace SharpRL
 {
     static class KeyboardConverter
     {
-        public static KeyEventArgs Convert(KeyboardKeyEventArgs sysArgs)
+        public static KeyCharEventData ConverCharKey(OpenTK.KeyPressEventArgs sysArgs)
         {
-            KeyEventArgs args = new KeyEventArgs();
+            KeyCharEventData kInfo = new KeyCharEventData();
+            kInfo.Character = sysArgs.KeyChar;
 
             var ks = Keyboard.GetState();
 
+            kInfo.SpecialKeys.Alt = ks[Key.AltLeft] || ks[Key.AltRight];
+            kInfo.SpecialKeys.LeftCtrl = ks[Key.ControlLeft];
+            kInfo.SpecialKeys.RightCtrl = ks[Key.ControlRight];
+            kInfo.SpecialKeys.Shift = ks[Key.ShiftLeft] || ks[Key.ShiftRight];
 
-            args.Alt = ks[Key.AltLeft] || ks[Key.AltRight];
-            args.LeftCtrl = ks[Key.ControlLeft];
-            args.RightCtrl = ks[Key.ControlRight];
-            args.Shift = ks[Key.ShiftLeft] || ks[Key.ShiftRight];
-            args.Key = keymap[sysArgs.Key];
+            return kInfo;
+        }
 
-            return args;
+        public static KeyRawEventData ConvertRawKey(KeyboardKeyEventArgs sysArgs)
+        {
+            KeyRawEventData kInfo = new KeyRawEventData();
+
+            var ks = Keyboard.GetState();
+
+            kInfo.SpecialKeys.Alt = ks[Key.AltLeft] || ks[Key.AltRight];
+            kInfo.SpecialKeys.LeftCtrl = ks[Key.ControlLeft];
+            kInfo.SpecialKeys.RightCtrl = ks[Key.ControlRight];
+            kInfo.SpecialKeys.Shift = ks[Key.ShiftLeft] || ks[Key.ShiftRight];
+            kInfo.Key = keymap[sysArgs.Key];
+
+            return kInfo;
         }
 
         static Dictionary<Key, KeyCode> keymap = new Dictionary<Key, KeyCode>();

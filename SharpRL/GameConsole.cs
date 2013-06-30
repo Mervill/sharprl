@@ -65,33 +65,37 @@ namespace SharpRL
         /// Raised when any key on the keyboard is down.  If the key remains down, this event will repeatedly
         /// fire.
         /// </summary>
-        public event EventHandler<KeyEventArgs> KeyDown;
+        public event EventHandler<EventArgs<KeyRawEventData>> KeyDown;
 
         /// <summary>
         /// Raised when a key or series of keys has been pressed which produces a printable (ASCII) character
         /// </summary>
-        public event EventHandler<KeyCharEventArgs> KeyChar;
+        public event EventHandler<EventArgs<KeyCharEventData>> KeyChar;
 
         /// <summary>
         /// Raised when a key on the keyboard has been released.
         /// </summary>
-        public event EventHandler<KeyEventArgs> KeyUp;
+        public event EventHandler<EventArgs<KeyRawEventData>> KeyUp;
 
         /// <summary>
         /// Raised when the mouse pointer has moved while over the window.
         /// </summary>
-        public event EventHandler<MouseEventArgs> MouseMove;
+        public event EventHandler<EventArgs<MouseEventData>> MouseMove;
 
         /// <summary>
         /// Raised when one of the mouse buttons has been pressed
         /// </summary>
-        public event EventHandler<MouseEventArgs> MouseButtonDown;
+        public event EventHandler<EventArgs<MouseEventData>> MouseButtonDown;
 
         /// <summary>
         /// Raised when one of the mouse buttons has been released.
         /// </summary>
-        public event EventHandler<MouseEventArgs> MouseButtonUp;
+        public event EventHandler<EventArgs<MouseEventData>> MouseButtonUp;
 
+        /// <summary>
+        /// Raise every frame tick
+        /// </summary>
+        public event EventHandler<EventArgs<float>> Drawing;
         #endregion
 
 
@@ -321,6 +325,9 @@ namespace SharpRL
             if (OnDraw != null)
                 OnDraw((float)e.Time);
 
+            if (Drawing != null)
+                Drawing(this, new EventArgs<float>((float)e.Time));
+
             Flush();
 
             renderer.SwapBuffers();
@@ -363,16 +370,21 @@ namespace SharpRL
 
             if (MouseButtonUp != null)
             {
-                MouseEventArgs args = new MouseEventArgs();
+                MouseEventData mInfo = new MouseEventData(
+                    (int)(e.X / cellWidth),
+                    (int)(e.Y / cellHeight),
+                    e.X,
+                    e.Y,
+                    mb);
 
-                args.Button = mb;
+                //mInfo.Button = mb;
 
-                args.PX = e.X;
-                args.PY = e.Y;
-                args.CX = (int)(e.X / cellWidth);
-                args.CY = (int)(e.Y / cellHeight);
+                //mInfo.PX = e.X;
+                //mInfo.PY = e.Y;
+                //mInfo.CX = (int)(e.X / cellWidth);
+                //mInfo.CY = (int)(e.Y / cellHeight);
 
-                MouseButtonUp(this, args);
+                MouseButtonUp(this, new EventArgs<MouseEventData>(mInfo));
             }
         }
 
@@ -401,16 +413,21 @@ namespace SharpRL
 
             if (MouseButtonDown != null)
             {
-                MouseEventArgs args = new MouseEventArgs();
+                MouseEventData mInfo = new MouseEventData(
+                    (int)(e.X / cellWidth),
+                    (int)(e.Y / cellHeight),
+                    e.X,
+                    e.Y,
+                    mb);
 
-                args.Button = mb;
+                //mInfo.Button = mb;
 
-                args.PX = e.X;
-                args.PY = e.Y;
-                args.CX = (int)(e.X / cellWidth);
-                args.CY = (int)(e.Y / cellHeight);
+                //mInfo.PX = e.X;
+                //mInfo.PY = e.Y;
+                //mInfo.CX = (int)(e.X / cellWidth);
+                //mInfo.CY = (int)(e.Y / cellHeight);
 
-                MouseButtonDown(this, args);
+                MouseButtonDown(this, new EventArgs<MouseEventData>(mInfo));
             }
 
         }
@@ -419,19 +436,25 @@ namespace SharpRL
         {
             if (MouseMove != null)
             {
-                MouseEventArgs args = new MouseEventArgs();
+                
 
-                args.PX = e.X;
-                args.PY = e.Y;
-                args.CX = (int)(e.X / cellWidth);
-                args.CY = (int)(e.Y / cellHeight);
+                var px = e.X;
+                var py = e.Y;
+                var cx = (int)(e.X / cellWidth);
+                var cy = (int)(e.Y / cellHeight);
+
+                MouseButton mb = MouseButton.None;
 
                 if (currentMouseButtons[0])
-                    args.Button = MouseButton.Left;
+                    mb = MouseButton.Left;
                 else if (currentMouseButtons[1])
-                    args.Button = MouseButton.Middle;
+                    mb = MouseButton.Middle;
                 else if (currentMouseButtons[2])
-                    args.Button = MouseButton.Right;
+                    mb = MouseButton.Right;
+
+                MouseEventData mInfo = new MouseEventData(cx, cy, px, py, mb);
+
+                MouseMove(this, new EventArgs<MouseEventData>(mInfo));
             }
         }
 
@@ -439,10 +462,9 @@ namespace SharpRL
         {
             if (KeyChar != null)
             {
-                KeyCharEventArgs args = new KeyCharEventArgs();
-                args.Char = e.KeyChar;
+                var info = KeyboardConverter.ConverCharKey(e);
 
-                KeyChar(this, args);
+                KeyChar(this, new EventArgs<KeyCharEventData>(info));
             }
         }
 
@@ -450,8 +472,8 @@ namespace SharpRL
         {
             if (KeyUp != null)
             {
-                KeyEventArgs args = KeyboardConverter.Convert(e);
-                KeyUp(this, args);
+                var info = KeyboardConverter.ConvertRawKey(e);
+                KeyUp(this, new EventArgs<KeyRawEventData>(info));
             }
         }
 
@@ -459,8 +481,8 @@ namespace SharpRL
         {
             if (KeyDown != null)
             {
-                KeyEventArgs args = KeyboardConverter.Convert(e);
-                KeyDown(this, args);
+                var info = KeyboardConverter.ConvertRawKey(e);
+                KeyDown(this, new EventArgs<KeyRawEventData>(info));
             }
         }
         #endregion
@@ -560,7 +582,7 @@ namespace SharpRL
                     {
                         if (Root.dirty[x + y * Root.Size.Width] == 1)
                         {
-                            var cell = Root.cells[x + y * Root.Size.Width];
+                            var cell = Root.GetCellUnchecked(x, y);
 
                             RenderGlyph(x, y, currentFont.GetCharPos(cell.ch),
                                 cell.fgColor,

@@ -24,44 +24,19 @@ using System;
 namespace SharpRL
 {
     /// <summary>
-    /// Event args that contains keyboard key information
+    /// Contains keyboard event data after a keypress has been converted to a Char type
     /// </summary>
-    public class KeyEventArgs : EventArgs
+    public class KeyCharEventData
     {
         /// <summary>
-        /// The KeyCode of the key
+        /// Information about special keyboard keys
         /// </summary>
-        public KeyCode Key { get; set; }
+        public SpecialKeyFlags SpecialKeys;
 
         /// <summary>
-        /// True if either of the ALT keys was pressed
+        /// The char value of the key press
         /// </summary>
-        public bool Alt { get; set; }
-
-        /// <summary>
-        /// True if the left Ctrl key was pressed
-        /// </summary>
-        public bool LeftCtrl { get; set; }
-
-        /// <summary>
-        /// True if the right Ctrl key was pressed
-        /// </summary>
-        public bool RightCtrl { get; set; }
-
-        /// <summary>
-        /// True if either of the Shift keys was pressed
-        /// </summary>
-        public bool Shift { get; set; }
+        public char Character;
     }
 
-    /// <summary>
-    /// Event args that contain the ASCII code for a pressed key
-    /// </summary>
-    public class KeyCharEventArgs : EventArgs
-    {
-        /// <summary>
-        /// The ASCII code of the pressed key
-        /// </summary>
-        public char Char { get; set; }
-    }
 }

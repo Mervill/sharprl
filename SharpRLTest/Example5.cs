@@ -20,7 +20,7 @@ namespace SharpRLTest
 
         public Example5()
         {
-            menuSurface = new Surface(50, 6);
+            menuSurface = new MemorySurface(50, 6);
 
             start = bsp.GetByLevel(bsp.Depth).First().Rect.Center();
             end = bsp.GetByLevel(bsp.Depth).Last().Rect.Center();
@@ -36,7 +36,7 @@ namespace SharpRLTest
             get { return "Pathfinding"; }
         }
 
-        public override void OnKey(KeyEventArgs key)
+        public override void OnKey(KeyRawEventData key)
         {
             switch (key.Key)
             {
@@ -52,7 +52,7 @@ namespace SharpRLTest
             }
         }
 
-        public override void OnMouseClick(MouseEventArgs mouse)
+        public override void OnMouseClick(MouseEventData mouse)
         {
             if (mouse.Button == MouseButton.Left)
             {

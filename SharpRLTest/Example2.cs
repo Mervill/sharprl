@@ -18,7 +18,7 @@ namespace SharpRLTest
 
         public Example2()
         {
-            offscreenSurface = new Surface(20, 10);
+            offscreenSurface = new MemorySurface(20, 10);
             currentPosition = new Point(5, 15);
 
             // Create a timer that will active every 1/2 second to update the position

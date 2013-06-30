@@ -20,61 +20,35 @@
 //
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace SharpRL
 {
     /// <summary>
-    /// Specifies a mouse button in a mouse input event
+    /// Information about special keyboard keys
     /// </summary>
-    public enum MouseButton
+    public struct SpecialKeyFlags
     {
         /// <summary>
-        /// No mouse button was involved in the event
+        /// True if either of the ALT keys was pressed
         /// </summary>
-        None,
-        /// <summary>
-        /// The left mouse button was involved in the event
-        /// </summary>
-        Left,
-        /// <summary>
-        /// The middle mouse button was involved in the event
-        /// </summary>
-        Middle,
-        /// <summary>
-        /// The right mouse button was involved in the event
-        /// </summary>
-        Right
-    };
-
-    /// <summary>
-    /// Holds the information related to a mouse input event
-    /// </summary>
-    public class MouseEventArgs : EventArgs
-    {
-        /// <summary>
-        /// The pixel X coordinate of the mouse pointer
-        /// </summary>
-        public int PX { get; set; }
+        public bool Alt { get; set; }
 
         /// <summary>
-        /// The pixel Y coordinate of the mouse pointer
+        /// True if the left Ctrl key was pressed
         /// </summary>
-        public int PY { get; set; }
+        public bool LeftCtrl { get; set; }
 
         /// <summary>
-        /// The console (character) X coordinate of the mouse pointer
+        /// True if the right Ctrl key was pressed
         /// </summary>
-        public int CX { get; set; }
+        public bool RightCtrl { get; set; }
 
         /// <summary>
-        /// The console (character) Y coordinate of the mouse pointer
+        /// True if either of the Shift keys was pressed
         /// </summary>
-        public int CY { get; set; }
-
-        /// <summary>
-        /// Which mouse button is involved in the event
-        /// </summary>
-        public MouseButton Button { get; set; }
-
+        public bool Shift { get; set; }
     }
 }

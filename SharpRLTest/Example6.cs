@@ -42,7 +42,7 @@ namespace SharpRLTest
             return base.Draw();
         }
 
-        public override void OnKey(KeyEventArgs key)
+        public override void OnKey(KeyRawEventData key)
         {
             base.OnKey(key);
 

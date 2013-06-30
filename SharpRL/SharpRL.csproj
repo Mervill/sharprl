@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EventArgs.cs" />
     <Compile Include="Framework\Array2d.cs" />
     <Compile Include="Framework\Bresenham.cs" />
     <Compile Include="Framework\BSPNode.cs" />
@@ -63,14 +64,20 @@
     <Compile Include="Framework\IterateCollection.cs" />
     <Compile Include="KeyboardConverter.cs" />
     <Compile Include="KeyCode.cs" />
-    <Compile Include="KeyEventArgs.cs" />
-    <Compile Include="MouseEventArgs.cs" />
+    <Compile Include="KeyCharEventData.cs" />
+    <Compile Include="KeyRawEventData.cs" />
+    <Compile Include="MemorySurface.cs" />
+    <Compile Include="MouseButton.cs" />
+    <Compile Include="MouseEventData.cs" />
     <Compile Include="Framework\MRPAS.cs" />
     <Compile Include="Framework\PriorityQueue.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Framework\ShadowCasting.cs" />
     <Compile Include="Framework\SpatialAStar.cs" />
+    <Compile Include="RootSurface.cs" />
+    <Compile Include="SpecialKeyFlags.cs" />
     <Compile Include="Surface.cs" />
+    <Compile Include="SurfaceView.cs" />
     <Compile Include="TileSheet.cs" />
     <Compile Include="Framework\Timer.cs" />
   </ItemGroup>

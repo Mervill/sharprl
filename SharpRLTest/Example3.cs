@@ -14,7 +14,7 @@ namespace SharpRLTest
 
         public Example3()
         {
-            menuSurface = new Surface(28, 6);
+            menuSurface = new MemorySurface(28, 6);
             MakeTree();
         }
 
@@ -23,7 +23,7 @@ namespace SharpRLTest
             get { return "Binary Space Partition"; }
         }
 
-        public override void OnKey(KeyEventArgs key)
+        public override void OnKey(KeyRawEventData key)
         {
             switch (key.Key)
             {

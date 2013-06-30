@@ -23,7 +23,7 @@ namespace SharpRLTest
             currLevel = 4;
             MakeTree();
 
-            menuSurface = new Surface(58, 6);
+            menuSurface = new MemorySurface(58, 6);
 
             FOV = new FieldOfView<Cell>(map);
 
@@ -39,7 +39,7 @@ namespace SharpRLTest
             get { return "Field Of View"; }
         }
 
-        public override void OnKey(KeyEventArgs key)
+        public override void OnKey(KeyRawEventData key)
         {
             switch (key.Key)
             {

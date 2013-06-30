@@ -99,13 +99,13 @@ namespace SharpRL
 
     #endregion
 
-    /// <summary>
-    /// Represents a drawing surface and exposes methods to handle printing characters
-    /// </summary>
-    public class Surface
-    {
-        internal Cell[] cells;
 
+
+    /// <summary>
+    /// Base class for Surface objects, exposes various drawing operations
+    /// </summary>
+    public abstract class Surface
+    {
         /// <summary>
         /// Get the size of the surface in characters (number of columns and rows)
         /// </summary>
@@ -150,27 +150,61 @@ namespace SharpRL
         /// </summary>
         /// <param name="columns"></param>
         /// <param name="rows"></param>
-        public Surface(int columns, int rows)
+        protected Surface(int columns, int rows)
         {
             if (columns <= 0 || rows <= 0)
                 throw new ArgumentException("Width and height must be greater than 0");
 
             Size = new Size(columns, rows);
-
-            cells = new Cell[columns * rows];
-
-
+            
             DefaultBackground = Color.Black;
             DefaultForeground = Color.White;
             DefaultChar = ' ';
+        }
 
-            for (int i = 0; i < cells.Length; i++)
-            {
-                cells[i].ch = DefaultChar;
-                cells[i].fgColor = DefaultForeground;
-                cells[i].bgColor = DefaultBackground;
-            }
+        /// <summary>
+        /// Get the foreground color at the specified coordinate.  An exception will be thrown
+        /// if the coordinate is outside the surface boundaries.
+        /// </summary>
+        /// <param name="cx"></param>
+        /// <param name="cy"></param>
+        /// <returns></returns>
+        public Color GetForeground(int cx, int cy)
+        {
+            if (cx < 0 || cx >= Width || cy < 0 || cy >= Height)
+                throw new ArgumentException("Coordinate is out of bounds");
 
+            return GetCellUnchecked(cx, cy).fgColor;
+        }
+
+        /// <summary>
+        /// Get the background color at the specified coordinate.  An exception will be thrown
+        /// if the coordinate is outside the surface boundaries.
+        /// </summary>
+        /// <param name="cx"></param>
+        /// <param name="cy"></param>
+        /// <returns></returns>
+        public Color GetBackground(int cx, int cy)
+        {
+            if (cx < 0 || cx >= Width || cy < 0 || cy >= Height)
+                throw new ArgumentException("Coordinate is out of bounds");
+
+            return GetCellUnchecked(cx, cy).bgColor;
+        }
+
+        /// <summary>
+        /// Get the character at the specified coordinate.  An exception will be thrown
+        /// if the coordinate is outside the surface boundaries.
+        /// </summary>
+        /// <param name="cx"></param>
+        /// <param name="cy"></param>
+        /// <returns></returns>
+        public char GetChar(int cx, int cy)
+        {
+            if (cx < 0 || cx >= Width || cy < 0 || cy >= Height)
+                throw new ArgumentException("Coordinate is out of bounds");
+
+            return GetCellUnchecked(cx, cy).ch;
         }
 
         #region Set Cell Methods
@@ -255,7 +289,6 @@ namespace SharpRL
         }
 
         #endregion
-
 
         #region String Printing
 
@@ -442,65 +475,6 @@ namespace SharpRL
 
         #endregion
 
-
-        #region Other Drawing Methods
-
-        /// <summary>
-        /// Clears the entire surface, using the default colors and character.
-        /// </summary>
-        public virtual void Clear()
-        {
-            for (int i = 0; i < cells.Length; i++)
-            {
-                cells[i].bgColor = DefaultBackground;
-                cells[i].fgColor = DefaultForeground;
-                cells[i].ch = DefaultChar;
-            }
-        }
-
-        /// <summary>
-        /// Fills the specified rectangle with the character and colors specified.  Characters outside the
-        /// surface boundaries are clipped.
-        /// </summary>
-        /// <param name="rect"></param>
-        /// <param name="ch"></param>
-        /// <param name="fg"></param>
-        /// <param name="bg"></param>
-        public void Fill(Rectangle rect, char ch, Color fg, Color bg)
-        {
-            for (int y = rect.Top; y < rect.Bottom; y++)
-            {
-                for (int x = rect.Left; x < rect.Right; x++)
-                {
-                    SetCell(x, y, ch, fg, bg);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Fills a rectangle with the specified character using the default foreground and background colors.
-        /// Characters falling outside the surface boundaries are clipped.
-        /// </summary>
-        /// <param name="rect"></param>
-        /// <param name="ch"></param>
-        public void Fill(Rectangle rect, char ch)
-        {
-            Fill(rect, ch, DefaultForeground, DefaultBackground);
-        }
-
-        /// <summary>
-        /// Fills a rectangle with the specified character and foreground color and the default background color.
-        /// Characters falling outside the surface boundaries are clipped.
-        /// </summary>
-        /// <param name="rect"></param>
-        /// <param name="ch"></param>
-        /// <param name="fg"></param>
-        public void Fill(Rectangle rect, char ch, Color fg)
-        {
-            Fill(rect, ch, fg, DefaultBackground);
-        }
-
-
         #region Line Drawing Methods
 
         /// <summary>
@@ -621,6 +595,55 @@ namespace SharpRL
 
         #endregion
 
+        #region Other Drawing Methods
+
+        /// <summary>
+        /// Clears the entire surface, using the default colors and character.
+        /// </summary>
+        public abstract void Clear();
+
+        /// <summary>
+        /// Fills the specified rectangle with the character and colors specified.  Characters outside the
+        /// surface boundaries are clipped.
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <param name="ch"></param>
+        /// <param name="fg"></param>
+        /// <param name="bg"></param>
+        public void Fill(Rectangle rect, char ch, Color fg, Color bg)
+        {
+            for (int y = rect.Top; y < rect.Bottom; y++)
+            {
+                for (int x = rect.Left; x < rect.Right; x++)
+                {
+                    SetCell(x, y, ch, fg, bg);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Fills a rectangle with the specified character using the default foreground and background colors.
+        /// Characters falling outside the surface boundaries are clipped.
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <param name="ch"></param>
+        public void Fill(Rectangle rect, char ch)
+        {
+            Fill(rect, ch, DefaultForeground, DefaultBackground);
+        }
+
+        /// <summary>
+        /// Fills a rectangle with the specified character and foreground color and the default background color.
+        /// Characters falling outside the surface boundaries are clipped.
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <param name="ch"></param>
+        /// <param name="fg"></param>
+        public void Fill(Rectangle rect, char ch, Color fg)
+        {
+            Fill(rect, ch, fg, DefaultBackground);
+        }
+
         /// <summary>
         /// Draws a frame using special characters, assuming one of the default font mappings (or similar) is being used.
         /// If title is not null or empty, then this string is printed a the top left corner of the frame.
@@ -738,8 +761,9 @@ namespace SharpRL
 
             blitRect = Rectangle.Intersect(blitRect, new Rectangle(0, 0, dest.Width, dest.Height));
 
-            bool dstIsRoot = dest is RootSurface;
-            RootSurface dstAsRoot = dest as RootSurface;
+            //bool dstIsRoot = dest is RootSurface;
+            //RootSurface dstAsRoot = dest as RootSurface;
+            Cell srcCell;
 
             for (int y = blitRect.Top; y < blitRect.Bottom; y++)
             {
@@ -748,17 +772,24 @@ namespace SharpRL
                     int sx = deltax + x;
                     int sy = deltay + y;
 
-                    if (src.cells[sx + sy * src.Width].ch != maskChar)
-                    {
-                        dest.cells[x + y * dest.Width].bgColor = src.cells[sx + sy * src.Width].bgColor;
-                        dest.cells[x + y * dest.Width].fgColor = src.cells[sx + sy * src.Width].fgColor;
-                        dest.cells[x + y * dest.Width].ch = src.cells[sx + sy * src.Width].ch;
+                    srcCell = src.GetCellUnchecked(sx, sy);
 
-                        if (dstIsRoot)
-                        {
-                            dstAsRoot.dirty[x + y * dest.Width] = 1;
-                        }
+                    if (srcCell.ch != maskChar)
+                    {
+                        dest.SetCell(x, y, srcCell.ch, srcCell.fgColor, srcCell.bgColor);
                     }
+
+                    //if (src.cells[sx + sy * src.Width].ch != maskChar)
+                    //{
+                    //    dest.cells[x + y * dest.Width].bgColor = src.cells[sx + sy * src.Width].bgColor;
+                    //    dest.cells[x + y * dest.Width].fgColor = src.cells[sx + sy * src.Width].fgColor;
+                    //    dest.cells[x + y * dest.Width].ch = src.cells[sx + sy * src.Width].ch;
+
+                    //    if (dstIsRoot)
+                    //    {
+                    //        dstAsRoot.dirty[x + y * dest.Width] = 1;
+                    //    }
+                    //}
                 }
             }
         }
@@ -779,6 +810,7 @@ namespace SharpRL
             if (dest == null)
                 throw new ArgumentNullException("dest");
 
+            Cell srcCell;
 
             Rectangle blitRect = new Rectangle(destX, destY, srcRect.Width, srcRect.Height);
             int deltax = srcRect.Left - blitRect.Left;
@@ -786,26 +818,28 @@ namespace SharpRL
 
             blitRect = Rectangle.Intersect(blitRect, new Rectangle(0, 0, dest.Width, dest.Height));
 
-            bool dstIsRoot = dest is RootSurface;
-            RootSurface dstAsRoot = dest as RootSurface;
+            //bool dstIsRoot = dest is RootSurface;
+            //RootSurface dstAsRoot = dest as RootSurface;
 
             for (int y = blitRect.Top; y < blitRect.Bottom; y++)
             {
-                int sy = deltay + y;
-
-                int px = deltax + blitRect.Left;
-
-                Array.Copy(src.cells, px + sy * src.Width,
-                    dest.cells, blitRect.Left + y * dest.Width,
-                    src.Width);
-                if (dstIsRoot)
+                for (int x = blitRect.Left; x < blitRect.Right; x++)
                 {
-                    for (int x = blitRect.Left; x < blitRect.Right; x++)
-                    {
+                    int sx = deltax + x;
+                    int sy = deltay + y;
 
-                        dstAsRoot.dirty[x + y * dest.Width] = 1;
+                    srcCell = src.GetCellUnchecked(sx, sy);
 
-                    }
+                    //int di = x + y * dest.Width;
+                    //int si = sx + sy * src.Width;
+
+                    //dest.cells[di] = src.cells[si];
+                    dest.SetCellUnchecked(x, y, srcCell.ch, srcCell.fgColor, srcCell.bgColor);
+
+                    //if (dstIsRoot)
+                    //{
+                    //    dstAsRoot.dirty[x + y * dest.Width] = 1;
+                    //}
                 }
             }
         }
@@ -827,16 +861,19 @@ namespace SharpRL
             if (dest == null)
                 throw new ArgumentNullException("dest");
 
+            Cell srcCell, dstCell;
+            Color backCol, foreCol;
+            char ch;
+
             Rectangle blitRect = new Rectangle(destX, destY, srcRect.Width, srcRect.Height);
             int deltax = srcRect.Left - blitRect.Left;
             int deltay = srcRect.Top - blitRect.Top;
 
             blitRect = Rectangle.Intersect(blitRect, new Rectangle(0, 0, dest.Width, dest.Height));
-            Color backCol, foreCol;
-            char ch;
 
-            bool dstIsRoot = dest is RootSurface;
-            RootSurface dstAsRoot = dest as RootSurface;
+
+            //bool dstIsRoot = dest is RootSurface;
+            //RootSurface dstAsRoot = dest as RootSurface;
 
             for (int y = blitRect.Top; y < blitRect.Bottom; y++)
             {
@@ -845,31 +882,47 @@ namespace SharpRL
                     int sx = deltax + x;
                     int sy = deltay + y;
 
-                    int di = x + y * dest.Width;
-                    int si = sx + sy * src.Width;
+                    srcCell = src.GetCellUnchecked(sx, sy);
+                    dstCell = dest.GetCellUnchecked(x, y);
 
-                    backCol = ColorHelper.Lerp(dest.cells[di].bgColor, src.cells[si].bgColor, alpha);
+                    //int di = x + y * dest.Width;
+                    //int si = sx + sy * src.Width;
 
-                    if (src.cells[si].ch == ' ')
+                    //backCol = ColorHelper.Lerp(dest.cells[di].bgColor, src.cells[si].bgColor, alpha);
+                    backCol = ColorHelper.Lerp(dstCell.bgColor, srcCell.bgColor, alpha);
+
+                    if (srcCell.ch == ' ')
                     {
-                        foreCol = ColorHelper.Lerp(dest.cells[di].fgColor, src.cells[si].bgColor, alpha);
-
-                        ch = dest.cells[di].ch;
+                        foreCol = ColorHelper.Lerp(dstCell.fgColor, srcCell.bgColor, alpha);
+                        ch = dstCell.ch;
                     }
                     else
                     {
-                        foreCol = src.cells[si].fgColor;
-                        ch = src.cells[si].ch;
+                        foreCol = srcCell.fgColor;
+                        ch = srcCell.ch;
                     }
+                    //if (src.cells[si].ch == ' ')
+                    //{
+                    //    foreCol = ColorHelper.Lerp(dest.cells[di].fgColor, src.cells[si].bgColor, alpha);
 
-                    dest.cells[di].bgColor = backCol;
-                    dest.cells[di].fgColor = foreCol;
-                    dest.cells[di].ch = ch;
+                    //    ch = dest.cells[di].ch;
+                    //}
+                    //else
+                    //{
+                    //    foreCol = src.cells[si].fgColor;
+                    //    ch = src.cells[si].ch;
+                    //}
 
-                    if (dstIsRoot)
-                    {
-                        dstAsRoot.dirty[x + y * dest.Width] = 1;
-                    }
+                    //dest.cells[di].bgColor = backCol;
+                    //dest.cells[di].fgColor = foreCol;
+                    //dest.cells[di].ch = ch;
+
+                    dest.SetCellUnchecked(x, y, ch, foreCol, backCol);
+
+                    //if (dstIsRoot)
+                    //{
+                    //    dstAsRoot.dirty[x + y * dest.Width] = 1;
+                    //}
                 }
             }
         }
@@ -894,21 +947,18 @@ namespace SharpRL
 
         #endregion
 
-
         #region Private
 
-        internal virtual void SetCell(int cx, int cy, char? ch, Color? fg, Color? bg)
+        internal abstract Cell GetCellUnchecked(int cx, int cy);
+
+        internal abstract void SetCellUnchecked(int cx, int cy, char? ch, Color? fg, Color? bg);
+
+        internal void SetCell(int cx, int cy, char? ch, Color? fg, Color? bg)
         {
             if (cx < 0 || cx >= Width || cy < 0 || cy >= Height)
                 return;
 
-            int index = cx + cy * Width;
-            if (ch.HasValue)
-                cells[index].ch = ch.Value;
-            if (fg.HasValue)
-                cells[index].fgColor = fg.Value;
-            if (bg.HasValue)
-                cells[index].bgColor = bg.Value;
+            SetCellUnchecked(cx, cy, ch, fg, bg);
         }
 
         internal struct Cell
@@ -918,7 +968,7 @@ namespace SharpRL
             public Color bgColor;
         }
 
-        private int GetHorizontalDelta(int strLength, int width, HorizontalAlignment hAlign)
+        internal int GetHorizontalDelta(int strLength, int width, HorizontalAlignment hAlign)
         {
             int dx;
 
@@ -941,7 +991,7 @@ namespace SharpRL
             return dx;
         }
 
-        private int GetVerticalDelta(int numLines, int height, VerticalAlignment vAlign)
+        internal int GetVerticalDelta(int numLines, int height, VerticalAlignment vAlign)
         {
             int dy;
 
@@ -964,7 +1014,7 @@ namespace SharpRL
             return dy;
         }
 
-        private string[] GetCharWrappedLines(string str, int maxWidth)
+        internal string[] GetCharWrappedLines(string str, int maxWidth)
         {
             List<string> stringlist = new List<string>();
 
@@ -986,7 +1036,7 @@ namespace SharpRL
             return stringlist.ToArray();
         }
 
-        private string[] GetWordWrappedLines(string str, int width)
+        internal string[] GetWordWrappedLines(string str, int width)
         {
             List<string> lines = new List<string>();
 
@@ -1034,7 +1084,7 @@ namespace SharpRL
             return lines.ToArray();
         }
 
-        private string[] Explode(string str)
+        internal string[] Explode(string str)
         {
             List<string> stringList = new List<string>();
             int currIndex = 0;
@@ -1062,44 +1112,9 @@ namespace SharpRL
             return stringList.ToArray();
         }
         #endregion
-
     }
 
-    /// <summary>
-    /// This the main drawing surface of a GameConsole.  It is used exactly as a normal Surface object.
-    /// </summary>
-    public class RootSurface : Surface
-    {
-        internal byte[] dirty;
-        GameConsole gameConsole;
 
-        internal RootSurface(int width, int height, GameConsole gameConsole)
-            : base(width, height)
-        {
-            dirty = new byte[width * height];
 
-            this.gameConsole = gameConsole;
-        }
 
-        internal override void SetCell(int cx, int cy, char? ch, Color? fg, Color? bg)
-        {
-            if (cx < 0 || cx >= Width || cy < 0 || cy >= Height)
-                return;
-
-            base.SetCell(cx, cy, ch, fg, bg);
-            dirty[cx + cy * Width] = 1;
-        }
-
-        /// <summary>
-        /// Clears the entire surface, using the default colors and character.
-        /// </summary>
-        public override void Clear()
-        {
-            base.Clear();
-
-            gameConsole.Clear(DefaultBackground);
-            Array.Clear(dirty, 0, dirty.Length);
-
-        }
-    }
 }

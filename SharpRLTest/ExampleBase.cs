@@ -96,7 +96,7 @@ namespace SharpRLTest
             timers = new TimerCollection();
             interpolators = new InterpolatorCollection();
 
-            surface = new Surface(ExampleApp.ExampleRect.Width, ExampleApp.ExampleRect.Height);
+            surface = new MemorySurface(ExampleApp.ExampleRect.Width, ExampleApp.ExampleRect.Height);
 
             map = new Array2d<Cell>(ExampleApp.ExampleRect.Width, ExampleApp.ExampleRect.Height);
             for (int y = 0; y < map.Height; y++)
@@ -194,9 +194,9 @@ namespace SharpRLTest
             interpolators.Update(elapsed);
         }
 
-        public virtual void OnKey(KeyEventArgs key) { }
+        public virtual void OnKey(KeyRawEventData key) { }
 
-        public virtual void OnMouseClick(MouseEventArgs e) { }
+        public virtual void OnMouseClick(MouseEventData mInfo) { }
 
         public virtual void OnFontChanged() { }
 
