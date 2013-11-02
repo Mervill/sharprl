@@ -28,7 +28,7 @@ using SharpRL;
 namespace RLGui
 {
     /// <summary>
-    /// A panel is a Widget that keeps an appropriately sized MemorySurface for drawing.  This surface is passed
+    /// A panel is a Widget that keeps an appropriately sized MemorySurface for user drawing.  This surface is passed
     /// to the OnRedraw method to be used for drawing operations, and is blitted to the console when
     /// base.OnRender is called.
     /// </summary>
@@ -42,9 +42,8 @@ namespace RLGui
         /// <param name="position"></param>
         /// <param name="size"></param>
         public Panel(Point position, Size size)
-            : base(position, size)
+            :this(new Rectangle(position, size))
         {
-            surface = new MemorySurface(size.Width, size.Height);
         }
 
         /// <summary>
@@ -52,20 +51,9 @@ namespace RLGui
         /// </summary>
         /// <param name="rect"></param>
         public Panel(Rectangle rect)
-            : this(rect.Location, rect.Size)
+            :base(rect)
         {
-
-        }
-
-        /// <summary>
-        /// Re-sizes the Panel
-        /// </summary>
-        /// <param name="newSize"></param>
-        public override void SetSize(Size newSize)
-        {
-            base.SetSize(newSize);
-
-            surface = new MemorySurface(newSize.Width, newSize.Height);
+            surface = new MemorySurface(Size.Width, Size.Height);
         }
 
         /// <summary>
@@ -96,6 +84,9 @@ namespace RLGui
                 Redraw(this, new EventArgs<Surface>(drawingSurface));
         }
 
+        /// <summary>
+        /// Fired when the panel is ready to be redrawn
+        /// </summary>
         public event EventHandler<EventArgs<Surface>> Redraw;
     }
 }

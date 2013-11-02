@@ -104,8 +104,14 @@ namespace RLGui
         private readonly Color fgColor;
         private readonly Color bgColor;
 
-
+        /// <summary>
+        /// White foreground, black background
+        /// </summary>
         public static Pigment WhiteBlack { get; private set; }
+
+        /// <summary>
+        /// Black foreground, white background
+        /// </summary>
         public static Pigment BlackWhite { get; private set; }
 
         static Pigment()

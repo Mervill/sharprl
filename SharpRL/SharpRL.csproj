@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EventArgs.cs" />
+    <Compile Include="FrameDefinition.cs" />
     <Compile Include="Framework\Array2d.cs" />
     <Compile Include="Framework\Bresenham.cs" />
     <Compile Include="Framework\BSPNode.cs" />

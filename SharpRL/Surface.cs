@@ -645,7 +645,7 @@ namespace SharpRL
         }
 
         /// <summary>
-        /// Draws a frame using special characters, assuming one of the default font mappings (or similar) is being used.
+        /// Draws a frame using special characters.
         /// If title is not null or empty, then this string is printed a the top left corner of the frame.
         /// Characters falling outside the surface boundaries are clipped.
         /// </summary>
@@ -654,23 +654,27 @@ namespace SharpRL
         /// <param name="clear">If true, clears the region inside the frame with the given back color</param>
         /// <param name="fore"></param>
         /// <param name="back"></param>
-        public void DrawFrame(Rectangle rect, string title, bool clear, Color fore, Color back)
+        /// <param name="frameDef">Characters used to draw frame, or default if null</param>
+        public void DrawFrame(Rectangle rect, string title, bool clear, Color fore, Color back, FrameDefinition frameDef = null)
         {
+            if(frameDef == null)
+                frameDef = Surface.DefaultFrame;
+
             if (clear)
             {
                 Fill(rect, ' ', fore, back);
             }
 
-            DrawHorizontalLine(rect.Left, rect.Top, rect.Width - 1, fore, back);
-            DrawHorizontalLine(rect.Left, rect.Bottom - 1, rect.Width - 1, fore, back);
+            DrawHorizontalLine(rect.Left, rect.Top, rect.Width - 1, frameDef.HorizontalLine, fore, back);
+            DrawHorizontalLine(rect.Left, rect.Bottom - 1, rect.Width - 1, frameDef.HorizontalLine, fore, back);
 
-            DrawVerticalLine(rect.Left, rect.Top, rect.Height - 1, fore, back);
-            DrawVerticalLine(rect.Right - 1, rect.Top, rect.Height - 1, fore, back);
+            DrawVerticalLine(rect.Left, rect.Top, rect.Height - 1, frameDef.VerticalLine, fore, back);
+            DrawVerticalLine(rect.Right - 1, rect.Top, rect.Height - 1, frameDef.VerticalLine, fore, back);
 
-            PrintChar(rect.Left, rect.Top, (char)SpecialChar.NorthWestLine, fore, back);
-            PrintChar(rect.Right - 1, rect.Top, (char)SpecialChar.NorthEastLine, fore, back);
-            PrintChar(rect.Left, rect.Bottom - 1, (char)SpecialChar.SouthWestLine, fore, back);
-            PrintChar(rect.Right - 1, rect.Bottom - 1, (char)SpecialChar.SouthEastLine, fore, back);
+            PrintChar(rect.Left, rect.Top, frameDef.CornerUpperLeft, fore, back);
+            PrintChar(rect.Right - 1, rect.Top, frameDef.CornerUpperRight, fore, back);
+            PrintChar(rect.Left, rect.Bottom - 1, frameDef.CornerLowerLeft, fore, back);
+            PrintChar(rect.Right - 1, rect.Bottom - 1, frameDef.CornerLowerRight, fore, back);
 
             if (!string.IsNullOrEmpty(title))
             {
@@ -679,14 +683,15 @@ namespace SharpRL
         }
 
         /// <summary>
-        /// Draws a frame using special characters, assuming one of the default font mappings (or similar) is being used.
+        /// Draws a frame using special characters.
         /// If title is not null or empty, then this string is printed a the top left corner of the frame.
         /// Characters falling outside the surface boundaries are clipped.
         /// </summary>
         /// <param name="rect"></param>
         /// <param name="title"></param>
         /// <param name="clear">If true, clears the region inside the frame</param>
-        public void DrawFrame(Rectangle rect, string title = null, bool clear = false)
+        /// <param name="frameDef">Characters used to draw frame, or default if null</param>
+        public void DrawFrame(Rectangle rect, string title = null, bool clear = false, FrameDefinition frameDef = null)
         {
             DrawFrame(rect, title, clear, DefaultForeground, DefaultBackground);
         }
@@ -948,6 +953,8 @@ namespace SharpRL
         #endregion
 
         #region Private
+
+        static FrameDefinition DefaultFrame = new FrameDefinition();
 
         internal abstract Cell GetCellUnchecked(int cx, int cy);
 

@@ -38,12 +38,35 @@ namespace RLGuiTest
 
             manager = new UIManager(console);
 
-            var panel = new MyPanel(new Rectangle(5,5,20,20));
-            //var frame = new Frame(panel);
-            //var btn = new Button(new Point(7, 7), "Button", HorizontalAlignment.Left, 0);
+            var panel = new MyPanel(new Rectangle(5,7,20,20));
 
+            var buttonTemplate = new ButtonTemplate()
+            {
+                Label = "A Button",
+                HasFrame = true,
+                HAlignment = HorizontalAlignment.Center,
+                VAlignment = VerticalAlignment.Top,
+                Title = "Button",
+                TitleLocation = FrameTitleLocation.UpperLeft,
+                MinimumSize = new Size(1,1),
+                FrameDefinition = new FrameDefinition()
+                {
+                    HorizontalLine = (char)SpecialChar.DoubleHorzLine,
+                    VerticalLine = (char)SpecialChar.ExclamationDouble,
+                    CornerLowerLeft = (char)SpecialChar.DoubleCrossLines,
+                    CornerLowerRight = (char)SpecialChar.DoubleCrossLines,
+                    CornerUpperLeft = (char)SpecialChar.DoubleCrossLines,
+                    CornerUpperRight = (char)SpecialChar.DoubleCrossLines
+                }
+            };
+
+            var btn = new Button(new Point(1, 1), buttonTemplate);
+
+            var cb = new CheckBox(new Point(15,2),
+                new CheckBoxTemplate() { Label = "CheckME", HasFrame = false, UnCheckedChar = 'O', CheckedChar = 'X',
+                });
             
-            manager.AddComponents(panel);
+            manager.AddComponents(panel, btn, cb);
         }
 
 
@@ -56,7 +79,7 @@ namespace RLGuiTest
     }
 
 
-    class MyPanel : FramePanel
+    class MyPanel : Panel
     {
         public MyPanel(Rectangle rect)
             : base(rect)
@@ -64,30 +87,18 @@ namespace RLGuiTest
             Rectangle clientRect = new Rectangle(0, 0, Rect.Width, Rect.Height);
         }
 
-        protected override void OnRedrawClient(Surface clientSurface)
+        protected override void OnRedraw(Surface drawingSurface)
         {
-            base.OnRedrawClient(clientSurface);
+            base.OnRedraw(drawingSurface);
 
-            clientSurface.Fill(clientSurface.Rect, '*');
+            drawingSurface.Fill(drawingSurface.Rect, '*');
 
-            if (IsMouseOverClient)
+            if (IsMouseOver)
             {
-                clientSurface.PrintChar(ClientMousePosition.X, ClientMousePosition.Y, '*', Color.Blue, Color.Red);
+                drawingSurface.PrintChar(MousePosition.X, MousePosition.Y, '*', Color.Blue, Color.Red);
             }
-        }
 
-        protected override void OnUpdate(float elapsed)
-        {
-            base.OnUpdate(elapsed);
-
-            if (IsMouseOverFrame)
-            {
-                FramePigment = new Pigment(Color.Red, Color.DarkBlue);
-            }
-            else
-            {
-                FramePigment = Pigment.WhiteBlack;
-            }
+            drawingSurface.DrawFrame(drawingSurface.Rect);
         }
 
     }

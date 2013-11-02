@@ -32,22 +32,9 @@ namespace RLGui
     /// </summary>
     public abstract class Widget : Component
     {
-        /// <summary>
-        /// Construct a Widget given the rectangular region
-        /// </summary>
-        /// <param name="rect"></param>
         protected Widget(Rectangle rect)
-            : this(rect.Location, rect.Size)
-        { }
-
-        /// <summary>
-        /// Construct a Widget given the position and size
-        /// </summary>
-        /// <param name="pos"></param>
-        /// <param name="size"></param>
-        protected Widget(Point pos, Size size)
         {
-            this.Rect = new Rectangle(pos, size);
+            this.Rect = rect;
         }
 
         /// <summary>
@@ -87,40 +74,6 @@ namespace RLGui
         /// </summary>
         public Rectangle Rect { get; private set; }
 
-        /// <summary>
-        /// Re-size the Widget.
-        /// </summary>
-        /// <param name="newSize"></param>
-        public virtual void SetSize(Size newSize)
-        {
-            this.Rect = new Rectangle(Position, Size);
-
-            if (SizeChanged != null)
-                SizeChanged(this, new EventArgs<Size>(newSize));
-
-        }
-
-        /// <summary>
-        /// Fired when the size of the Widget has been changed by calling SetSize
-        /// </summary>
-        public event EventHandler<EventArgs<Size>> SizeChanged;
-
-        /// <summary>
-        /// Sets the Widget's position.  This is given in console space.
-        /// </summary>
-        /// <param name="newPos"></param>
-        public virtual void SetPosition(Point newPos)
-        {
-            this.Rect = new Rectangle(Position, Size);
-
-            if (PositionChanged != null)
-                PositionChanged(this, new EventArgs<Point>(newPos));
-        }
-
-        /// <summary>
-        /// Fired when the position of the Widget has been changed by calling SetPosition
-        /// </summary>
-        public event EventHandler<EventArgs<Point>> PositionChanged;
 
     }
 

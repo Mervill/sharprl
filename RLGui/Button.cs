@@ -27,38 +27,64 @@ using SharpRL;
 
 namespace RLGui
 {
+    public class ButtonTemplate : ControlTemplate
+    {
+        public ButtonTemplate()
+        {
+            Label = "";
+            HasFrame = true;
+            HAlignment = HorizontalAlignment.Left;
+            VAlignment = VerticalAlignment.Center;
+        }
+
+        /// <summary>
+        /// Default is empty string
+        /// </summary>
+        public string Label { get; set; }
+
+        /// <summary>
+        /// Default is Left
+        /// </summary>
+        public HorizontalAlignment HAlignment { get; set; }
+
+        /// <summary>
+        /// Default is Center
+        /// </summary>
+        public VerticalAlignment VAlignment { get; set; }
+
+        public override Size CalcSizeToContent()
+        {
+            int width, height;
+
+            width = Label.Length;
+            height = 1;
+
+            if (HasFrame)
+            {
+                width += 2;
+                height += 2;
+            }
+
+            return new Size(width, height);
+        }
+    }
+
     /// <summary>
     /// Represents a Panel that has a label and changes rendering pigment
     /// depending on various states
     /// </summary>
-    public class Button : Panel
+    public class Button : Control
     {
         /// <summary>
-        /// Construct a new Button given a position and width
+        /// Construct a Button with a given position and size.
         /// </summary>
-        /// <param name="position"></param>
-        /// <param name="width"></param>
-        public Button(Point position, int width)
-            : base(position, new Size(width, 3))
+        public Button(Point position, ButtonTemplate template)
+            :base(position, template)
         {
-            Label = "";
-            Alignment = HorizontalAlignment.Left;
-        }
-        
-        /// <summary>
-        /// Construct a Button given it's position, label, horizontal alignment and padding.  The Button
-        /// will have a width corresponding to the label length and padding.
-        /// </summary>
-        /// <param name="position"></param>
-        /// <param name="label"></param>
-        /// <param name="align"></param>
-        /// <param name="padding">The number of blank spaces added to the both sides of the label for determining
-        /// the Button width</param>
-        public Button(Point position, string label, HorizontalAlignment align, int padding = 0)
-            : base(position, ComputeSize(label, padding))
-        {
-            Label = label;
-            Alignment = align;
+            
+            Label = template.Label;
+            HAlignment = template.HAlignment;
+            VAlignment = template.VAlignment;
         }
 
         /// <summary>
@@ -69,23 +95,23 @@ namespace RLGui
         /// <summary>
         /// Get or set the alignment of the label within the button area
         /// </summary>
-        public HorizontalAlignment Alignment { get; set; }
+        public HorizontalAlignment HAlignment { get; set; }
 
-        static Size ComputeSize(string label, int padding)
-        {
-            return new Size(label.Length + padding * 2 + 2, 3);
-        }
+        public VerticalAlignment VAlignment { get; set; }
 
         /// <summary>
-        /// Redraws the button
+        /// Draws the button label
         /// </summary>
-        /// <param name="drawingSurface"></param>
-        protected override void OnRedraw(Surface drawingSurface)
+        protected override void DrawContent()
         {
-            base.OnRedraw(drawingSurface);
+            var pigment = GetCurrentViewPigment();
 
-            drawingSurface.DrawFrame(new Rectangle(Point.Empty, Size), null, false, Color.Blue, Color.Black);
-            drawingSurface.PrintStringAligned(1, 1, Label, Rect.Width - 2, Alignment);
+            DrawingSurface.DefaultBackground = pigment.Background;
+            DrawingSurface.DefaultForeground = pigment.Foreground;
+
+            DrawingSurface.Clear();
+
+            DrawingSurface.PrintStringRect(ContentRect, Label, HAlignment, VAlignment);
         }
 
     }

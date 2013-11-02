@@ -59,6 +59,11 @@ namespace RLGui
             Console = console;
         }
 
+        private void ComponentAdded(Component comp)
+        {
+            comp.manager = this;
+        }
+
         /// <summary>
         /// Adds one or more components to the top of the component collection.
         /// Components are only added if they do not already exist in the collection.
@@ -71,7 +76,7 @@ namespace RLGui
                 if (!components.Contains(component))
                 {
                     components.Add(component);
-                    component.manager = this;
+                    ComponentAdded(component);
                 }
             }
         }
@@ -94,7 +99,7 @@ namespace RLGui
                 {
                     components.Insert(index, component);
                     index++;
-                    component.manager = this;
+                    ComponentAdded(component);
                 }
             }
         }
@@ -117,7 +122,7 @@ namespace RLGui
                 {
                     components.Insert(index, component);
                     index++;
-                    component.manager = this;
+                    ComponentAdded(component);
                 }
             }
         }
@@ -135,7 +140,9 @@ namespace RLGui
                 throw new ArgumentException("The aboveComponent does not exist in the collection");
 
             components.Remove(componentToMove);
-            InsertComponentsAbove(aboveComponent, componentToMove);
+
+            int index = components.IndexOf(aboveComponent) + 1;
+            components.Insert(index, componentToMove);
         }
 
         /// <summary>
@@ -151,7 +158,9 @@ namespace RLGui
                 throw new ArgumentException("The belowComponent does not exist in the collection");
 
             components.Remove(componentToMove);
-            InsertComponentsBelow(belowComponent, componentToMove);
+
+            int index = components.IndexOf(belowComponent);
+            components.Insert(index, componentToMove);
         }
 
         /// <summary>
@@ -164,7 +173,7 @@ namespace RLGui
                 throw new ArgumentException("The componentToMove does not exist in the collection");
 
             components.Remove(componentToMove);
-            AddComponents(componentToMove);
+            components.Add(componentToMove);
 
         }
 
@@ -205,27 +214,41 @@ namespace RLGui
                 currComponent.OnRender(Console.Root);
                 
                 
-                hoverTime += e.Value;
 
-                if (!isHovering && hoverTime >= HoverTimeMilli)
+            }
+
+            hoverTime += e.Value;
+
+            if (!isHovering && hoverTime >= HoverTimeMilli)
+            {
+                isHovering = true;
+
+                if (lastMouseMoveData != null)
                 {
-                    isHovering = true;
-                    if (lastMouseMoveData != null && currComponent.HitTest(lastMouseMoveData.ConsoleLocation))
+                    var currComponent = GetTopComponentAt(lastMouseMoveData.ConsoleLocation);
+
+                    if (currComponent != null)
                     {
-                        currComponent.OnHoverBegin(new MouseMessageData(lastMouseMoveData, 
+                        currComponent.OnHoverBegin(new MouseMessageData(lastMouseMoveData,
                             currComponent.ConsoleToLocalSpace(lastMouseMoveData.ConsoleLocation)));
                     }
                 }
             }
         }
 
+
         Component lastMouseOver;
         float hoverTime;
         bool isHovering;
         MouseEventData lastMouseMoveData;
 
-
-        Component GetTopComponentAt(Point pos)
+        /// <summary>
+        /// Returns the topmost component at the given position (in console space)
+        /// If there are no components at that position, then this method returns null
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public Component GetTopComponentAt(Point pos)
         {
             Component over = null;
             for (int i = components.Count - 1; i >= 0; i--)
@@ -267,6 +290,7 @@ namespace RLGui
                 if (isHovering)
                 {
                     isHovering = false;
+
                     currComponent.OnHoverEnd(childMouseInfo);
                 }
 
@@ -275,6 +299,7 @@ namespace RLGui
             else if(lastMouseOver != null)
             {
                 lastMouseOver.OnMouseLeave();
+
                 lastMouseOver = null;
             }
 

@@ -51,8 +51,8 @@ namespace RLGui
 
     /// <summary>
     /// Base class for user interface components.  A component receives messages from the UIManager, and represents a visual
-    /// object having a position and size.
-    /// Classes deriving from Component can handle system and input messages by overriding the appropriate virtual handler
+    /// object that can be interacted with via mouse and keyboard.
+    /// Classes deriving from Component handle system and input messages by overriding the appropriate virtual handler
     /// methods.
     /// </summary>
     public abstract class Component
@@ -69,7 +69,6 @@ namespace RLGui
         /// </summary>
         protected Component()
         {
-
             KeyboardMode = KeyboardInputMode.Always;
         }
 
@@ -351,6 +350,9 @@ namespace RLGui
         /// </summary>
         protected internal virtual void OnMouseLeave()
         {
+            if (IsBeingPushed)
+                IsBeingPushed = false;
+
             IsMouseOver = false;
             MousePosition = Point.Empty;
 
@@ -398,9 +400,6 @@ namespace RLGui
         /// Fired when the keyboard focus has been released by this component
         /// </summary>
         public event EventHandler FocusReleased;
-
-
-
 
         /// <summary>
         /// Called when this component receives an Update system message.
