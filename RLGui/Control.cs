@@ -27,8 +27,14 @@ using SharpRL;
 
 namespace RLGui
 {
+    /// <summary>
+    /// Base class for filling out a control's initialization data
+    /// </summary>
     public abstract class ControlTemplate
     {
+        /// <summary>
+        /// Construct a new ControlTemplate object
+        /// </summary>
         public ControlTemplate()
         {
             HasFrame = true;
@@ -37,24 +43,61 @@ namespace RLGui
 
             TitleLocation = FrameTitleLocation.UpperLeft;
 
-            Pigments = new ControlPigments();
+            KeyboardMode = KeyboardInputMode.Focus;
+
+            ToolTipText = null;
         }
 
+        /// <summary>
+        /// True if the control should draw a frame (and possibly frame title)
+        /// </summary>
         public bool HasFrame { get; set; }
 
+        /// <summary>
+        /// The frame definition, used if HasFrame is true
+        /// </summary>
         public FrameDefinition FrameDefinition { get; set; }
 
+        /// <summary>
+        /// The frame title, used if HasFrame is true
+        /// </summary>
         public string Title { get; set; }
 
+        /// <summary>
+        /// Where the frame title is drawn, if HasFrame is true
+        /// </summary>
         public FrameTitleLocation TitleLocation { get; set; }
 
+        /// <summary>
+        /// The default state pigments used for drawing
+        /// </summary>
         public ControlPigments Pigments { get; set; }
 
+        /// <summary>
+        /// The minimum size of the control
+        /// </summary>
         public Size MinimumSize { get; set; }
 
+        /// <summary>
+        /// The text shown with a tooltip popup, or empty/null for no tooltip
+        /// </summary>
+        public string ToolTipText { get; set; }
 
+        /// <summary>
+        /// Determines how keyboard focus is handled by the control.
+        /// </summary>
+        public KeyboardInputMode KeyboardMode { get; set; }
+
+        /// <summary>
+        /// Override to return the size the control should be based other template values
+        /// </summary>
+        /// <returns></returns>
         public abstract Size CalcSizeToContent();
 
+        /// <summary>
+        /// Returns the final size of the control, using CalcSizeToContent and MinimumSize
+        /// </summary>
+        /// <returns></returns>
         public Size GetFinalSize()
         {
             Size sz = CalcSizeToContent();
@@ -77,10 +120,6 @@ namespace RLGui
     /// </summary>
     public abstract class Control : Widget
     {
-        /// <summary>
-        /// The MemorySurface for this control
-        /// </summary>
-        protected MemorySurface DrawingSurface { get; private set; }
 
         /// <summary>
         /// The pigments used when the control is drawn
@@ -88,66 +127,81 @@ namespace RLGui
         public ControlPigments Pigments { get; private set; }
 
         /// <summary>
-        /// The tooltip string displayed when hovering over this control.  Set to null or empty
-        /// to disable tooltip
+        /// Gets the tooltip string displayed when hovering over this control.  Return null or empty
+        /// to disable tooltip. The default base implementation returns the string passed by the control template.
+        /// Override to add state-specific tooltips.
         /// </summary>
-        public string ToolTip { get; set; }
+        public virtual string ToolTipText
+        {
+            get
+            {
+                return toolTipText;
+            }
+        }
+
+        private string toolTipText;
 
         /// <summary>
-        /// Get or set this control to be active or not.  Inactive controls typically should ignore
-        /// action messages (but they still will receive them from the framework)
+        /// Get whether a frame border is drawn around the control
         /// </summary>
-        public bool IsActive { get; set; }
+        public bool HasFrame { get; private set; }
 
         /// <summary>
-        /// Get or set whether a frame border is drawn around the control
+        /// How the control's frame is drawn, if HasFrame is true
         /// </summary>
-        public bool HasFrame { get; set; }
-
         public FrameDefinition FrameDefinition { get; set; }
 
+        /// <summary>
+        /// The frame Title of the control, drawn if HasFrame is true
+        /// </summary>
         public string Title { get; set; }
 
+        /// <summary>
+        /// Where the frame title is drawn (if HasFrame is true)
+        /// </summary>
         public FrameTitleLocation TitleLocation { get; set; }
 
-        protected Rectangle ContentRect { get; private set; }
+        /// <summary>
+        /// The rectangle of the control's drawing area in local space. If the Control has a frame, this will return
+        /// a Rectangle starting at 1,1 and sized to fit inside the frame. If there is no frame, then this will
+        /// return a Rectangle at 0,0 and the same size as the entire Control.
+        /// </summary>
+        protected Rectangle ViewRect { get; private set; }
 
         /// <summary>
         /// Construct a new Control object
         /// </summary>
         protected Control(Point position, ControlTemplate template)
-            :base(new Rectangle(position, template.GetFinalSize()))
+            :base(position, template.GetFinalSize())
         {
-            IsActive = true;
             Pigments = template.Pigments;
-            DrawingSurface = new MemorySurface(Size.Width, Size.Height);
+
+            if (Pigments == null)
+                Pigments = new ControlPigments();
+
+            
             FrameDefinition = template.FrameDefinition;
             Title = template.Title;
             TitleLocation = template.TitleLocation;
+            toolTipText = template.ToolTipText;
+            KeyboardMode = template.KeyboardMode;
 
             HasFrame = template.HasFrame;
 
             if (HasFrame)
             {
-                ContentRect = new Rectangle(new Point(1, 1), new Size(Size.Width - 2, Size.Height - 2));
+                ViewRect = new Rectangle(new Point(1, 1), new Size(Size.Width - 2, Size.Height - 2));
             }
             else
             {
-                ContentRect = new Rectangle(new Point(0, 0), Size);
+                ViewRect = new Rectangle(new Point(0, 0), Size);
             }
         }
 
         /// <summary>
-        /// Called by the framework when the control is to be blitted to the console root surface.
-        /// </summary>
-        /// <param name="renderTo"></param>
-        protected internal override void OnRender(Surface renderTo)
-        {
-            Surface.Blit(DrawingSurface, renderTo, Position.X, Position.Y);
-        }
-
-        /// <summary>
-        /// Calls DrawContent()
+        /// Calls DrawContent(), and draws the frame and title if applicable.
+        /// For custom drawing, override DrawContent, DrawFrame, and DrawFrameTitle instead of this method.
+        /// To customize colors, override GetCurrentViewPigment and GetCurrentBorderPigment
         /// </summary>
         protected internal override void OnPaint()
         {
@@ -165,13 +219,11 @@ namespace RLGui
 
         /// <summary>
         /// Get the view pigment according to state using the Style property.
+        /// Override to return custom view (content) colors
         /// </summary>
         /// <returns></returns>
         protected virtual Pigment GetCurrentViewPigment()
         {
-            if (!IsActive)
-                return Pigments.ViewInactive;
-
             if (IsBeingPushed)
                 return Pigments.ViewSelected;
              
@@ -182,14 +234,12 @@ namespace RLGui
         }
 
         /// <summary>
-        /// Get the border pigment according to state using the Style property
+        /// Get the border pigment according to state using the Style property.
+        /// Override to return custom border colors
         /// </summary>
         /// <returns></returns>
         protected virtual Pigment GetCurrentBorderPigment()
         {
-            if (!IsActive)
-                return Pigments.BorderInactive;
-
             if (IsBeingPushed)
                 return Pigments.BorderSelected;
 
@@ -246,7 +296,6 @@ namespace RLGui
         /// Called during OnPaint message.  Override to provide content drawing code
         /// </summary>
         protected abstract void DrawContent();
-
 
     }
 }

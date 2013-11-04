@@ -116,6 +116,10 @@ namespace SharpRL
             keymap.Add(Key.Minus, KeyCode.Subtract);
             keymap.Add(Key.Period, KeyCode.Period);
 
+            keymap.Add(Key.CapsLock, KeyCode.CapsLock);
+            keymap.Add(Key.Clear, KeyCode.Clear);
+            keymap.Add(Key.Menu, KeyCode.Menu);
+
             // Keypad
             for (int i = 0; i <= 9; i++)
             {
@@ -126,6 +130,7 @@ namespace SharpRL
             keymap.Add(Key.KeypadSubtract, KeyCode.KeypadSubtract);
             keymap.Add(Key.KeypadDivide, KeyCode.KeypadDivide);
             keymap.Add(Key.KeypadMultiply, KeyCode.KeypadMultiply);
+            keymap.Add(Key.KeypadEnter, KeyCode.KeypadEnter);
 
             keymap.Add(Key.Left, KeyCode.Left);
             keymap.Add(Key.Right, KeyCode.Right);

@@ -95,7 +95,7 @@ namespace RLGui
 
             string fullLabel = string.Format("{0} {1}", checkChar, Label);
 
-            DrawingSurface.PrintStringRect(ContentRect, fullLabel, HAlignment, VAlignment);
+            DrawingSurface.PrintStringRect(ViewRect, fullLabel, HAlignment, VAlignment);
         }
     }
 }

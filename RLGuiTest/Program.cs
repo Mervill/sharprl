@@ -14,6 +14,7 @@ namespace RLGuiTest
             App app = new App();
 
             app.Run();
+
         }
     }
 
@@ -46,29 +47,50 @@ namespace RLGuiTest
                 HasFrame = true,
                 HAlignment = HorizontalAlignment.Center,
                 VAlignment = VerticalAlignment.Top,
-                Title = "Button",
+                //Title = "Button",
                 TitleLocation = FrameTitleLocation.UpperLeft,
+                ToolTipText = "Push ME!",
                 MinimumSize = new Size(1,1),
-                FrameDefinition = new FrameDefinition()
-                {
-                    HorizontalLine = (char)SpecialChar.DoubleHorzLine,
-                    VerticalLine = (char)SpecialChar.ExclamationDouble,
-                    CornerLowerLeft = (char)SpecialChar.DoubleCrossLines,
-                    CornerLowerRight = (char)SpecialChar.DoubleCrossLines,
-                    CornerUpperLeft = (char)SpecialChar.DoubleCrossLines,
-                    CornerUpperRight = (char)SpecialChar.DoubleCrossLines
-                }
+                
             };
 
             var btn = new Button(new Point(1, 1), buttonTemplate);
 
-            var cb = new CheckBox(new Point(15,2),
-                new CheckBoxTemplate() { Label = "CheckME", HasFrame = false, UnCheckedChar = 'O', CheckedChar = 'X',
-                });
-            
-            manager.AddComponents(panel, btn, cb);
-        }
+            List<ItemData> listItems = new List<ItemData>()
+            {
+                new ItemData("Item 1", "The first item"),
+                new ItemData("Item 2", "The second item"),
+                new ItemData("Item 3", "The third item"),
+                new ItemData("Item 4", "The fourth item")
+            };
 
+            var lb = new ListBox(new Point(30, 15), new ListBoxTemplate(listItems)
+            {
+                ToolTipText = "A very fine listbox example thingy"
+            });
+
+            var cb = new CheckBox(new Point(15,2),
+                new CheckBoxTemplate() { Label = "CheckME", HasFrame = true, UnCheckedChar = 'O', CheckedChar = 'X',
+                });
+
+            var eb = new EntryBox(new Point(5, 30), new EntryBoxTemplate()
+            {
+                NumberOfCharacters = 15,
+                ReplaceOnFirstKey = false,
+                ValidChars = CharValidationFlags.All
+            });
+
+            eb.ValidateField += (o, e) =>
+                {
+                    if (!string.IsNullOrEmpty(e.Text))
+                    {
+                        if (e.Text[0] != 'a')
+                            e.IsValid = false;
+                    }
+                };
+
+            manager.AddComponents(panel, btn, cb, lb, eb);
+        }
 
         public void Run()
         {
@@ -79,7 +101,7 @@ namespace RLGuiTest
     }
 
 
-    class MyPanel : Panel
+    class MyPanel : Widget
     {
         public MyPanel(Rectangle rect)
             : base(rect)
@@ -87,20 +109,24 @@ namespace RLGuiTest
             Rectangle clientRect = new Rectangle(0, 0, Rect.Width, Rect.Height);
         }
 
-        protected override void OnRedraw(Surface drawingSurface)
+        protected override void OnPaint()
         {
-            base.OnRedraw(drawingSurface);
+            char thing = '*';
 
-            drawingSurface.Fill(drawingSurface.Rect, '*');
+            if (IsHovering)
+                thing = '+';
 
+            DrawingSurface.Fill(DrawingSurface.Rect, thing);
+            
             if (IsMouseOver)
             {
-                drawingSurface.PrintChar(MousePosition.X, MousePosition.Y, '*', Color.Blue, Color.Red);
+                DrawingSurface.PrintChar(MousePosition.X, MousePosition.Y, '*', Color.Blue, Color.Red);
             }
 
-            drawingSurface.DrawFrame(drawingSurface.Rect);
+            DrawingSurface.DrawFrame(DrawingSurface.Rect);
         }
 
     }
+
 
 }

@@ -34,10 +34,12 @@ namespace SharpRL.Framework
     {
         /// <summary>
         /// Linearly interpolates between two colors by the specified amount, returning the new color.
+        /// If amount is 0 (or less), then the color will be equal to "from".  If amount is 1 (or more)
+        /// the returned color will be equal to "to".
         /// </summary>
-        /// <param name="from"></param>
-        /// <param name="to"></param>
-        /// <param name="amount"></param>
+        /// <param name="from">The staring color</param>
+        /// <param name="to">The ending color</param>
+        /// <param name="amount">The amount to interpolate, from 0.0 to 1.0</param>
         /// <returns></returns>
         public static Color Lerp(Color from, Color to, float amount)
         {
@@ -61,8 +63,8 @@ namespace SharpRL.Framework
         /// <summary>
         /// Create a Color by multiplying two colors.  NewColor = (color1 * color2) / 255
         /// </summary>
-        /// <param name="color1"></param>
-        /// <param name="color2"></param>
+        /// <param name="color1">First color</param>
+        /// <param name="color2">Second color</param>
         /// <returns>The resulting Color</returns>
         public static Color CreateMultiply(Color color1, Color color2)
         {
@@ -78,8 +80,8 @@ namespace SharpRL.Framework
         /// <summary>
         /// Create a Color by multiplying a color by a value (scales the r,g,b, components by the given value).
         /// </summary>
-        /// <param name="color"></param>
-        /// <param name="val"></param>
+        /// <param name="color">The color to be multiplied</param>
+        /// <param name="val">The scalar value to multiply by</param>
         /// <returns>The resulting Color</returns>
         public static Color CreateMultiply(Color color, float val)
         {
@@ -95,8 +97,8 @@ namespace SharpRL.Framework
         /// <summary>
         /// Create a Color by adding two colors.  NewColor = Min(color1 + color2, 255)
         /// </summary>
-        /// <param name="color1"></param>
-        /// <param name="color2"></param>
+        /// <param name="color1">The first color</param>
+        /// <param name="color2">The second color</param>
         /// <returns>The resulting Color</returns>
         public static Color CreateAdd(Color color1, Color color2)
         {
@@ -112,8 +114,8 @@ namespace SharpRL.Framework
         /// <summary>
         /// Create a Color by subtracting one color from another.  NewColor = Max(color1 - color2, 0)
         /// </summary>
-        /// <param name="color1"></param>
-        /// <param name="color2"></param>
+        /// <param name="color1">The first color, from which color2 is subtracted</param>
+        /// <param name="color2">The second color, subtracted from the first</param>
         /// <returns>The resulting Color</returns>
         public static Color CreateSubtract(Color color1, Color color2)
         {
@@ -128,14 +130,14 @@ namespace SharpRL.Framework
 
         /// <summary>
         /// Create a color from the first 3 least significant bytes of the provided integer, where the red,green and blue
-        /// components are packed in that order.
+        /// components are packed in order of most to least significant.
         /// </summary>
         /// <example>
         /// CreateFromPackedInt(0xFF00FF) would create a Color with a red component of 255,
         /// a green component of 0, and a blue component of 255.
         /// </example>
-        /// <param name="packedColor"></param>
-        /// <returns></returns>
+        /// <param name="packedColor">The integer containing the color values</param>
+        /// <returns>The resulting Color</returns>
         public static Color CreateFromPackedInt(int packedColor)
         {
             int r, g, b;
@@ -154,10 +156,10 @@ namespace SharpRL.Framework
         /// <summary>
         /// Creates a color given floats as the components (where each component is between 0.0f and 1.0f inclusive)
         /// </summary>
-        /// <param name="r"></param>
-        /// <param name="g"></param>
-        /// <param name="b"></param>
-        /// <returns></returns>
+        /// <param name="r">The red component, from 0.0 to 1.0</param>
+        /// <param name="g">The green component, from 0.0 to 1.0</param>
+        /// <param name="b">The blue component, from 0.0 to 1.0</param>
+        /// <returns>The resulting Color</returns>
         public static Color CreateFromFloatRgb(float r, float g, float b)
         {
             int red = (int)(r * 255);
@@ -219,7 +221,7 @@ namespace SharpRL.Framework
         /// <summary>
         /// Create a color by replacing the hue component of the given color
         /// </summary>
-        /// <param name="color"></param>
+        /// <param name="color">The source Color</param>
         /// <param name="hue">The hue, from 0 to 360 inclusive</param>
         /// <returns>The resulting Color</returns>
         public static Color CreateFromHue(Color color, float hue)
@@ -233,7 +235,7 @@ namespace SharpRL.Framework
         /// <summary>
         /// Create a color by replacing the saturation component of the given color
         /// </summary>
-        /// <param name="color"></param>
+        /// <param name="color">The source Color</param>
         /// <param name="sat">The saturation, from 0 to 1 inclusive</param>
         /// <returns>The resulting Color</returns>
         public static Color CreateFromSaturation(Color color, float sat)
@@ -247,7 +249,7 @@ namespace SharpRL.Framework
         /// <summary>
         /// Create a color by replacing the value (in HSV space) of the given color
         /// </summary>
-        /// <param name="color"></param>
+        /// <param name="color">The source Color</param>
         /// <param name="val">From 0 to 1 inclusive</param>
         /// <returns>The resulting Color</returns>
         public static Color CreateFromValue(Color color, float val)
@@ -261,7 +263,7 @@ namespace SharpRL.Framework
         /// <summary>
         /// Gets the hue, saturation and value of a color
         /// </summary>
-        /// <param name="color"></param>
+        /// <param name="color">The source Color</param>
         /// <param name="h">The hue, from 0 to 360 inclusive</param>
         /// <param name="s">The saturation, from 0 to 1 inclusive</param>
         /// <param name="v">The value, from 0 to 1 inclusive</param>
@@ -310,7 +312,7 @@ namespace SharpRL.Framework
         /// <summary>
         /// Gets the hue (in HSV) of a color
         /// </summary>
-        /// <param name="color"></param>
+        /// <param name="color">The source Color</param>
         /// <returns>The hue, from 0 to 360 inclusive
         /// </returns>
         public static float GetHue(this Color color)
@@ -324,7 +326,7 @@ namespace SharpRL.Framework
         /// <summary>
         /// Gets the saturation (in HSV) of a color
         /// </summary>
-        /// <param name="color"></param>
+        /// <param name="color">The source Color</param>
         /// <returns>The saturation, from 0 to 1 inclusive</returns>
         public static float GetSaturation(this Color color)
         {
@@ -337,7 +339,7 @@ namespace SharpRL.Framework
         /// <summary>
         /// Gets the value (in HSV) of a color
         /// </summary>
-        /// <param name="color"></param>
+        /// <param name="color">The source Color</param>
         /// <returns>The value, from 0 to 1 inclusive</returns>
         public static float GetValue(this Color color)
         {

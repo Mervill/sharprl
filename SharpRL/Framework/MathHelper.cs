@@ -34,10 +34,10 @@ namespace SharpRL.Framework
         /// <summary>
         /// Returns the specified value clamped to the minimum and maximum values inclusive.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="value"></param>
-        /// <param name="min"></param>
-        /// <param name="max"></param>
+        /// <typeparam name="T">An IComparable value type</typeparam>
+        /// <param name="value">The value to clamp</param>
+        /// <param name="min">The minimum value returned</param>
+        /// <param name="max">The maximum value returned</param>
         /// <returns></returns>
         public static T Clamp<T>(T value, T min, T max) where T : struct, IComparable<T>
         {
@@ -50,11 +50,12 @@ namespace SharpRL.Framework
         }
 
         /// <summary>
-        /// Returns a linearly interpolated value according to the amount.
+        /// Returns a linearly interpolated value according to the amount.  If amount is 0, then the
+        /// value will be equal to "from".  If amount is 1, then value will be equal to "to"
         /// </summary>
-        /// <param name="from"></param>
-        /// <param name="to"></param>
-        /// <param name="amount"></param>
+        /// <param name="from">The starting value</param>
+        /// <param name="to">The ending value</param>
+        /// <param name="amount">Amount to interpolate, should be from 0.0 to 1.0</param>
         /// <returns></returns>
         public static float Lerp(float from, float to, float amount)
         {
@@ -64,10 +65,10 @@ namespace SharpRL.Framework
         }
 
         /// <summary>
-        /// Returns the maximum from the specified values
+        /// Returns the maximum of the specified values.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="vals"></param>
+        /// <typeparam name="T">An IComparable type</typeparam>
+        /// <param name="vals">List of values to compare</param>
         /// <returns></returns>
         public static T Max<T>(params T[] vals) where T : IComparable
         {
@@ -83,10 +84,10 @@ namespace SharpRL.Framework
         }
 
         /// <summary>
-        /// Returns the minimum from the specified values
+        /// Returns the minimum of the specified values.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="vals"></param>
+        /// <typeparam name="T">An IComparable type</typeparam>
+        /// <param name="vals">List of values to compare</param>
         /// <returns></returns>
         public static T Min<T>(params T[] vals) where T : IComparable
         {

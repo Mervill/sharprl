@@ -44,7 +44,7 @@ namespace RLGui
         Focus,
 
         /// <summary>
-        /// The keyboard will always receive keyboard input
+        /// The component will always receive keyboard input
         /// </summary>
         Always
     }
@@ -55,17 +55,23 @@ namespace RLGui
     /// Classes deriving from Component handle system and input messages by overriding the appropriate virtual handler
     /// methods.
     /// </summary>
+    /// <remarks>
+    /// Deriving from Component is usually unecessary.  Instead, Widget and Control provide more built-in functionality.
+    /// One possible reason for deriving from Component would be for non-rectangular or oddly-shaped visual objects
+    /// </remarks>
     public abstract class Component
     {
         /// <summary>
-        /// This method will be used to transform mouse location to local space when sending mouse input messages
+        /// This method will be used to transform mouse location to local space when sending mouse input messages.
+        /// Override to translate the console space positon to more useful coordinates for the component when
+        /// receiving mouse input messages.
         /// </summary>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="pos">The position in console space</param>
+        /// <returns>The position translated to local space</returns>
         public abstract Point ConsoleToLocalSpace(Point pos);
 
         /// <summary>
-        /// Construct a component
+        /// Constructs a component.
         /// </summary>
         protected Component()
         {
@@ -75,32 +81,32 @@ namespace RLGui
         internal UIManager manager;
 
         /// <summary>
-        /// Returns true if the mouse is currently over this widget
+        /// Returns true if the mouse is currently over this component.
         /// </summary>
         public bool IsMouseOver { get; private set; }
 
         /// <summary>
-        /// Returns true if the left mouse button has been pressed and is currently down while over this widget
+        /// Returns true if the left mouse button has been pressed and is currently down while over this component.
         /// </summary>
         public bool IsBeingPushed { get; private set; }
 
         /// <summary>
-        /// The current mouse position in local space.  If the mouse cursor is outside of this widget's
-        /// region, then this will be 0,0
+        /// The current mouse position in local space.  If the mouse cursor is outside of this component's
+        /// region, then this will be 0,0 (and IsMouseOver will be false).
         /// </summary>
         public Point MousePosition { get; private set; }
 
         /// <summary>
-        /// Returns true if the mouse is over this widget and is in the hover state
+        /// Returns true if the mouse is over this component and is in the hover state.
         /// </summary>
         public bool IsHovering { get; private set; }
 
         /// <summary>
         /// Override to provide customized hit testing.  UIManager uses this to determine if mouse messages should be passed to
-        /// this component.  The default base method checks to see if the point is insides this component's rectangle
+        /// this component.
         /// </summary>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="pos">The position, in console space, to be checked</param>
+        /// <returns>True if the position is within the component's region</returns>
         public abstract bool HitTest(Point pos);
 
         /// <summary>
@@ -109,6 +115,7 @@ namespace RLGui
         public KeyboardInputMode KeyboardMode { get; protected set; }
 
         private bool hasKeyboardFocus;
+
         /// <summary>
         /// True if this component has keyboard focus.  This only has meaning if the KeyboardMode is set to Focus.
         /// </summary>
@@ -136,7 +143,7 @@ namespace RLGui
         /// Take the keyboard focus.  Other components will loose their focus if any has it.  This method is only
         /// applicable if the KeyboardMode is set to Focus
         /// </summary>
-        protected void TakeKeyboardFocus()
+        public void TakeKeyboardFocus()
         {
             if (hasKeyboardFocus || KeyboardMode != KeyboardInputMode.Focus)
                 return;
@@ -148,7 +155,7 @@ namespace RLGui
         /// Release the keyboard focus.  This method is only applicable if this component currently has focus
         /// and the KeyboardMode is set to Focus
         /// </summary>
-        protected void ReleaseKeyboardFocus()
+        public void ReleaseKeyboardFocus()
         {
             if (!hasKeyboardFocus || KeyboardMode != KeyboardInputMode.Focus)
                 return;
@@ -160,7 +167,7 @@ namespace RLGui
         /// Called when this component receives a raw keyboard key press message.
         /// Override to provide custom message handling code after calling base method
         /// </summary>
-        /// <param name="keyInfo"></param>
+        /// <param name="keyInfo">Raw keyboard message data</param>
         protected internal virtual void OnKeyDown(KeyRawEventData keyInfo)
         {
             if (KeyDown != null)
@@ -168,16 +175,16 @@ namespace RLGui
         }
 
         /// <summary>
-        /// Fired when a key has been pressed
+        /// Fired when the component receives a raw keyboard key press message.
         /// </summary>
         public event EventHandler<EventArgs<KeyRawEventData>> KeyDown;
 
 
         /// <summary>
-        /// Called when this component receives a raw keyboard key released message
+        /// Called when this component receives a raw keyboard key released message.
         /// Override to provide custom message handling code after calling base method
         /// </summary>
-        /// <param name="keyInfo"></param>
+        /// <param name="keyInfo">Raw keyboard message data</param>
         protected internal virtual void OnKeyUp(KeyRawEventData keyInfo)
         {
             if (KeyUp != null)
@@ -185,17 +192,18 @@ namespace RLGui
         }
 
         /// <summary>
-        /// Fired when a key has been released
+        /// Fired when this component recieves a raw key released message.
         /// </summary>
         public event EventHandler<EventArgs<KeyRawEventData>> KeyUp;
 
 
 
         /// <summary>
-        /// Called when this component receives a translated keypress message
+        /// Called when this component receives a translated keypress message, i.e. when a key or
+        /// series of keys has been pressed that have an ASCII representation.
         /// Override to provide custom message handling code after calling base method
         /// </summary>
-        /// <param name="keyInfo"></param>
+        /// <param name="keyInfo">Translated keyboard message data</param>
         protected internal virtual void OnKeyChar(KeyCharEventData keyInfo)
         {
             if (KeyChar != null)
@@ -212,7 +220,7 @@ namespace RLGui
         /// Called when the mouse pointer moves while over this component.
         /// Override to provide custom message handling code after calling base method
         /// </summary>
-        /// <param name="mouseInfo"></param>
+        /// <param name="mouseInfo">Mouse input message data</param>
         protected internal virtual void OnMouseMove(MouseMessageData mouseInfo)
         {
             MousePosition = mouseInfo.LocalPos;
@@ -230,9 +238,11 @@ namespace RLGui
 
         /// <summary>
         /// Called when a mouse button has been pressed and the mouse pointer is over this component.
-        /// Override to provide custom message handling code after calling base method
+        /// Override to provide custom message handling code after calling base method.
+        /// If KeyboardMode is set to Focus, then a left mouse down message will cause this
+        /// component to take the keyboard focus.
         /// </summary>
-        /// <param name="mouseInfo"></param>
+        /// <param name="mouseInfo">Mouse input message data</param>
         protected internal virtual void OnMouseButtonDown(MouseMessageData mouseInfo)
         {
             if (mouseInfo.Button == MouseButton.Left)
@@ -259,7 +269,7 @@ namespace RLGui
         /// Called when a mouse button has been released and the mouse pointer is over this component.
         /// Override to provide custom message handling code after calling base method
         /// </summary>
-        /// <param name="mouseInfo"></param>
+        /// <param name="mouseInfo">Mouse input message data</param>
         protected internal virtual void OnMouseButtonUp(MouseMessageData mouseInfo)
         {
             if (mouseInfo.Button == MouseButton.Left)
@@ -287,7 +297,7 @@ namespace RLGui
         /// Called when the mouse pointer is at rest for a short time and enters a hover state.
         /// Override to provide custom message handling code after calling base method
         /// </summary>
-        /// <param name="mouseInfo"></param>
+        /// <param name="mouseInfo">Mouse input message data</param>
         protected internal virtual void OnHoverBegin(MouseMessageData mouseInfo)
         {
             IsHovering = true;
@@ -306,7 +316,7 @@ namespace RLGui
         /// Called when the mouse pointer moves after being in a hover state.
         /// Override to provide custom message handling code after calling base method
         /// </summary>
-        /// <param name="mouseInfo"></param>
+        /// <param name="mouseInfo">Mouse input message data</param>
         protected internal virtual void OnHoverEnd(MouseMessageData mouseInfo)
         {
             IsHovering = false;
@@ -327,7 +337,7 @@ namespace RLGui
         /// Called when the mouse pointer enters this component's region.
         /// Override to provide custom message handling code after calling base method
         /// </summary>
-        /// <param name="mouseInfo"></param>
+        /// <param name="mouseInfo">Mouse input message data</param>
         protected internal virtual void OnMouseEnter(MouseMessageData mouseInfo)
         {
             IsMouseOver = true;
@@ -402,10 +412,11 @@ namespace RLGui
         public event EventHandler FocusReleased;
 
         /// <summary>
-        /// Called when this component receives an Update system message.
+        /// Called when this component receives an Update system message. Per-frame or timing
+        /// logic should go here.
         /// Override to provide custom message handling code after calling base method
         /// </summary>
-        /// <param name="elapsed"></param>
+        /// <param name="elapsed">Number of seconds since last OnUpdate call</param>
         protected internal virtual void OnUpdate(float elapsed)
         {
             if (Update != null)
@@ -420,16 +431,19 @@ namespace RLGui
 
 
         /// <summary>
-        /// Called when this widget is ready for drawing.
+        /// Called when this component is ready for re-drawing it's contents, typically to a MemorySurface. 
+        /// No actual drawing to the Root surface should occur here - instead, this method should prepare a
+        /// memory surface and then blit that surface to the Root during OnRender
         /// Override to provide custom drawing code after calling base method
         /// </summary>
         protected internal abstract void OnPaint();
 
         /// <summary>
-        /// Called when this widget receives a Clicked message.
+        /// Called when this widget receives a Clicked message, i.e. when the left mouse button
+        /// is pushed and released while over this component.
         /// Override to provide custom message handling code after calling base method
         /// </summary>
-        /// <param name="mouseInfo"></param>
+        /// <param name="mouseInfo">Mouse input message data</param>
         protected virtual void OnClicked(MouseMessageData mouseInfo)
         {
             if (Clicked != null)
@@ -442,8 +456,10 @@ namespace RLGui
         public event EventHandler<EventArgs<MouseMessageData>> Clicked;
 
         /// <summary>
-        /// Called when this component should put its contents onto to the console
+        /// Called when this component should actually put its contents onto to the console surface, which
+        /// is passed as a parameter to this method.
         /// </summary>
+        /// <param name="renderTo"></param>
         protected internal abstract void OnRender(Surface renderTo);
 
     }

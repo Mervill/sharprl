@@ -35,6 +35,13 @@ namespace RLGui
             HasFrame = true;
             HAlignment = HorizontalAlignment.Left;
             VAlignment = VerticalAlignment.Center;
+
+            Pigments = new ControlPigments()
+            {
+                BorderMouseOver = new Pigment(Color.Gold, Color.Black),
+                BorderSelected = new Pigment(Color.Black, Color.Gold),
+                ViewSelected = Pigment.BlackWhite
+            };
         }
 
         /// <summary>
@@ -111,7 +118,7 @@ namespace RLGui
 
             DrawingSurface.Clear();
 
-            DrawingSurface.PrintStringRect(ContentRect, Label, HAlignment, VAlignment);
+            DrawingSurface.PrintStringRect(ViewRect, Label, HAlignment, VAlignment);
         }
 
     }

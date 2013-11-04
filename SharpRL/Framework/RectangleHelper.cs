@@ -33,8 +33,8 @@ namespace SharpRL.Framework
     public static class RectangleHelper
     {
         /// <summary>
-        /// Iterate through all the integer points in the rectangle.  The points start at the top
-        /// left, and are return right to left and top to bottom.
+        /// Iterate through all the integer points in the rectangle. The points start at the top
+        /// left, and are returned right to left and top to bottom.
         /// </summary>
         /// <param name="rect"></param>
         /// <returns></returns>
@@ -50,7 +50,7 @@ namespace SharpRL.Framework
         }
 
         /// <summary>
-        /// Get the approximate (integer) center point of the rectangle.
+        /// Get the center point of the rectangle. Fractions are dropped and returned as an integer.
         /// </summary>
         /// <param name="rect"></param>
         /// <returns></returns>

@@ -35,9 +35,9 @@ namespace SharpRL
         /// <summary>
         /// Enumerates through each position along a line defined by the starting and ending points.
         /// </summary>
-        /// <param name="start"></param>
-        /// <param name="end"></param>
-        /// <returns></returns>
+        /// <param name="start">The starting coordinate</param>
+        /// <param name="end">The ending coordinate</param>
+        /// <returns>Each Point along the line</returns>
         public static IEnumerable<Point> GetLine(Point start, Point end)
         {
             return GetLine(start.X, start.Y, end.X, end.Y);
@@ -50,7 +50,7 @@ namespace SharpRL
         /// <param name="y0">Starting y coordinate</param>
         /// <param name="x1">Ending x coordinate</param>
         /// <param name="y1">Ending y coordinate</param>
-        /// <returns></returns>
+        /// <returns>Each Point along the line</returns>
         public static IEnumerable<Point> GetLine(int x0, int y0, int x1, int y1)
         {
             int dx = Math.Abs(x1 - x0);

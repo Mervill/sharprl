@@ -37,16 +37,17 @@ namespace RLGui
 
         internal GameConsole Console { get; private set; }
 
+       
         /// <summary>
-        /// The number of milliseconds of mouse cursor rest time after which a MouseHover message will be sent
+        /// The number of seconds of mouse cursor rest time after which a MouseHover message is sent
         /// </summary>
-        public static float HoverTimeMilli = 500f;
+        public float HoverRestTime { get; set; }
 
         /// <summary>
         /// Constructs a UIManager object given the GameConsole
         /// </summary>
         /// <param name="console"></param>
-        public UIManager(GameConsole console)
+        public UIManager(GameConsole console, ToolTip toolTip = null)
         {
             console.KeyChar += new EventHandler<EventArgs<KeyCharEventData>>(console_KeyChar);
             console.KeyDown += new EventHandler<EventArgs<KeyRawEventData>>(console_KeyDown);
@@ -57,6 +58,14 @@ namespace RLGui
             console.Drawing += new EventHandler<EventArgs<float>>(console_Drawing);
 
             Console = console;
+            HoverRestTime = 1f;
+
+            if (toolTip == null)
+                this.ToolTip = new DefaultToolTip();
+            else
+                this.ToolTip = toolTip;
+
+            ToolTip.Manager = this;
         }
 
         private void ComponentAdded(Component comp)
@@ -202,46 +211,6 @@ namespace RLGui
             }
         }
 
-
-        void console_Drawing(object sender, EventArgs<float> e)
-        {
-            Console.Root.Clear();
-
-            foreach (var currComponent in components)
-            {
-                currComponent.OnUpdate(e.Value);
-                currComponent.OnPaint();
-                currComponent.OnRender(Console.Root);
-                
-                
-
-            }
-
-            hoverTime += e.Value;
-
-            if (!isHovering && hoverTime >= HoverTimeMilli)
-            {
-                isHovering = true;
-
-                if (lastMouseMoveData != null)
-                {
-                    var currComponent = GetTopComponentAt(lastMouseMoveData.ConsoleLocation);
-
-                    if (currComponent != null)
-                    {
-                        currComponent.OnHoverBegin(new MouseMessageData(lastMouseMoveData,
-                            currComponent.ConsoleToLocalSpace(lastMouseMoveData.ConsoleLocation)));
-                    }
-                }
-            }
-        }
-
-
-        Component lastMouseOver;
-        float hoverTime;
-        bool isHovering;
-        MouseEventData lastMouseMoveData;
-
         /// <summary>
         /// Returns the topmost component at the given position (in console space)
         /// If there are no components at that position, then this method returns null
@@ -265,9 +234,85 @@ namespace RLGui
             return over;
         }
 
+        public ToolTip ToolTip { get; private set; }
+        bool ToolTipShowing = false;
+
+        private void StartToolTip(Control control)
+        {
+            ToolTip.StartTooltip(control.ToolTipText, lastMouseMoveData.ConsoleLocation);
+            ToolTipShowing = true;
+        }
+
+        private void EndToolTip()
+        {
+            ToolTip.EndTooltip();
+            ToolTipShowing = false;
+        }
+
+        Component lastMouseOver;
+        float hoverTime;
+        bool isHovering;
+        MouseEventData lastMouseMoveData;
+
+
+
+        void console_Drawing(object sender, EventArgs<float> e)
+        {
+            Console.Root.Clear();
+
+            foreach (var currComponent in components)
+            {
+                currComponent.OnUpdate(e.Value);
+                currComponent.OnPaint();
+                currComponent.OnRender(Console.Root);
+
+
+
+            }
+
+            if (ToolTipShowing)
+            {
+                ToolTip.OnUpdate(e.Value);
+                ToolTip.OnPaint();
+                ToolTip.OnRender(Console.Root);
+            }
+
+            hoverTime += e.Value;
+
+            if (!isHovering && hoverTime >= HoverRestTime)
+            {
+                isHovering = true;
+
+                if (lastMouseMoveData != null)
+                {
+                    var currComponent = GetTopComponentAt(lastMouseMoveData.ConsoleLocation);
+
+                    if (currComponent != null)
+                    {
+                        currComponent.OnHoverBegin(new MouseMessageData(lastMouseMoveData,
+                            currComponent.ConsoleToLocalSpace(lastMouseMoveData.ConsoleLocation)));
+
+                        if (currComponent is Control)
+                        {
+                            Control control = currComponent as Control;
+
+                            if(!string.IsNullOrEmpty(control.ToolTipText))
+                                StartToolTip(control);
+                        }
+                    }
+                }
+            }
+        }
+
         void console_MouseMove(object sender, EventArgs<MouseEventData> e)
         {
             lastMouseMoveData = e.Value;
+            hoverTime = 0f;
+
+            if (ToolTipShowing)
+            {
+                EndToolTip();
+            }
 
             var currComponent = GetTopComponentAt(e.Value.ConsoleLocation);
 
@@ -336,16 +381,20 @@ namespace RLGui
 
         Component currentKBFocus;
 
+
         internal void RequestKBTake(Component comp)
         {
             if (currentKBFocus != null)
                 currentKBFocus.HasKeyboardFocus = false;
 
             comp.HasKeyboardFocus = true;
+            currentKBFocus = comp;
         }
 
         internal void RequestKBRelease(Component comp)
         {
+            comp.OnFocusReleased();
+
             currentKBFocus = null;
             comp.HasKeyboardFocus = false;
         }

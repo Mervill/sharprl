@@ -187,7 +187,7 @@ namespace SharpRL
 
         private int handle;
         /// <summary>
-        /// Get the backend handle associated with the font image
+        /// Get the backend (OpenTK) handle associated with the font image
         /// </summary>
         public int Handle { get { return handle; } }
 
@@ -199,10 +199,10 @@ namespace SharpRL
         /// <summary>
         /// Create a Font given the path to an image file
         /// </summary>
-        /// <param name="gameConsole"></param>
-        /// <param name="fileName"></param>
-        /// <param name="format"></param>
-        /// <param name="layout"></param>
+        /// <param name="gameConsole">The GameConsole instance</param>
+        /// <param name="fileName">A valid path to a bitmap image</param>
+        /// <param name="format">The format to use to process the image</param>
+        /// <param name="layout">The character layout of the image</param>
         public FontSheet(GameConsole gameConsole, string fileName, FontFormat format, FontLayout layout)
         {
             if (gameConsole == null)
@@ -217,10 +217,10 @@ namespace SharpRL
         /// <summary>
         /// Creat a Font object from a System.Drawing.Bitmap
         /// </summary>
-        /// <param name="gameConsole"></param>
-        /// <param name="bitmap">The provided bitmap is copied, so it can be disposed after calling this method</param>
-        /// <param name="format"></param>
-        /// <param name="layout"></param>
+        /// <param name="gameConsole">The GameConsole instance</param>
+        /// <param name="bitmap">The source bitmap</param>
+        /// <param name="format">The format to use to process the image</param>
+        /// <param name="layout">The character layout of the image</param>
         public FontSheet(GameConsole gameConsole, Bitmap bitmap, FontFormat format, FontLayout layout)
         {
             if (gameConsole == null)
@@ -245,11 +245,11 @@ namespace SharpRL
             charMap = new Point[numberOfRows * numberOfColumns];
             MapConsecutiveAsciiCodes((char)0, numberOfRows * numberOfColumns, 0, 0, layout);
 
-            this.image = ProcessImage(bitmap, format);
+            using (var image = ProcessImage(bitmap, format))
+            {
+                gameConsle.Renderer.RegisterImageResource(image, out handle);
+            }
 
-
-
-            gameConsle.Renderer.RegisterImageResource(image, out handle);
         }
 
         #endregion
@@ -260,7 +260,7 @@ namespace SharpRL
         /// <summary>
         /// Set a custom mapping for a single ascii code.
         /// </summary>
-        /// <param name="asciiCode"></param>
+        /// <param name="asciiCode">The ASCII code for this character</param>
         /// <param name="fontCharX">The X coordinate of the character sprite in characters (not pixels)</param>
         /// <param name="fontCharY">The Y coordinate of the character sprite in characters (not pixels)</param>
         public void MapAsciiCode(char asciiCode, int fontCharX, int fontCharY)
@@ -281,7 +281,7 @@ namespace SharpRL
         /// <param name="numberOfCodes">Number of consecutive codes to map</param>
         /// <param name="startFontCharX">The starting X coordinate of the sprite in characters (not pixels)</param>
         /// <param name="startFontCharY">The starting Y coordinate of the sprite in characters (not pixels)</param>
-        /// <param name="layout"></param>
+        /// <param name="layout">Layout to use to map the characters</param>
         public void MapConsecutiveAsciiCodes(char firstAsciiCode, int numberOfCodes, int startFontCharX,
             int startFontCharY, FontLayout layout)
         {
@@ -329,7 +329,7 @@ namespace SharpRL
         /// <param name="str"></param>
         /// <param name="startFontCharX">The starting X coordinate of the sprite in characters (not pixels)</param>
         /// <param name="startFontCharY">The starting Y coordinate of the sprite in characters (not pixels)</param>
-        /// <param name="layout"></param>
+        /// <param name="layout">The layout used to map the characters</param>
         public void MapString(string str, int startFontCharX, int startFontCharY, FontLayout layout)
         {
             if (startFontCharX < 0 || startFontCharX >= numberOfColumns)
@@ -380,7 +380,6 @@ namespace SharpRL
         }
         internal int numberOfColumns;
         internal int numberOfRows;
-        internal Bitmap image;
         
         Point[] charMap;
 

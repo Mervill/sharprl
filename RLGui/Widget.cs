@@ -28,20 +28,46 @@ using SharpRL;
 namespace RLGui
 {
     /// <summary>
-    /// A component that represents a rectangular region (position and size)
+    /// A Widget is a component that represents a rectangular region (has a position and size).
+    /// A Widget's position and size are immutable once created. User drawing should be done to the provided
+    /// DrawingSurface during OnPaint().
     /// </summary>
+    /// <remarks>
+    /// Derive from Widget when all the extra functionality of Control is not needed.
+    /// </remarks>
     public abstract class Widget : Component
     {
+        /// <summary>
+        /// The MemorySurface for drawing to this widget. This surface is blitted to the GameConsole root
+        /// surface when OnRender is called by the framework.
+        /// </summary>
+        protected MemorySurface DrawingSurface { get; private set; }
+
+
+        /// <summary>
+        /// Construct a Widget object given the rectangular region (in console space) it will occupy.
+        /// </summary>
+        /// <param name="rect">The position and size of the Widget</param>
         protected Widget(Rectangle rect)
         {
             this.Rect = rect;
+            DrawingSurface = new MemorySurface(Size.Width, Size.Height);
         }
+
+        /// <summary>
+        /// Construct a Widget object given the rectangular region (in console space) it will occupy.
+        /// </summary>
+        /// <param name="position"></param>
+        /// <param name="size"></param>
+        protected Widget(Point position, Size size)
+            : this(new Rectangle(position, size))
+        { }
 
         /// <summary>
         /// Returns true if the point is inside this Widget's rectangular region
         /// </summary>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="pos">The position in console space to be checked</param>
+        /// <returns>True if the position in within the Widget's region</returns>
         public override bool HitTest(Point pos)
         {
             return Rect.Contains(pos);
@@ -55,8 +81,8 @@ namespace RLGui
         /// <summary>
         /// Translates the point to local space.  Used for translating mouse messages to this Widget
         /// </summary>
-        /// <param name="pos"></param>
-        /// <returns></returns>
+        /// <param name="pos">The position to be translated</param>
+        /// <returns>The position translated to local space</returns>
         public override Point ConsoleToLocalSpace(Point pos)
         {
             var p = new Point(pos.X - Position.X, pos.Y - Position.Y);
@@ -74,7 +100,14 @@ namespace RLGui
         /// </summary>
         public Rectangle Rect { get; private set; }
 
-
+        /// <summary>
+        /// Called by the framework when the Widget is to be blitted to the console root surface.
+        /// </summary>
+        /// <param name="renderTo"></param>
+        protected internal override void OnRender(Surface renderTo)
+        {
+            Surface.Blit(DrawingSurface, renderTo, Position.X, Position.Y);
+        }
     }
 
 }

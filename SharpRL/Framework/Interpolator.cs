@@ -51,7 +51,7 @@ namespace SharpRL.Framework
         /// <param name="step">Delegate that gets invoked at each update</param>
         /// <param name="completed">Delegate that gets invoked when the interpolator has completed</param>
         /// <param name="repeats">If true, interpolator resets to start after each completion</param>
-        /// <returns></returns>
+        /// <returns>The created Interpolator</returns>
         public Interpolator AddInterpolator(float length, Action<Interpolator> step, 
             Action<Interpolator> completed, bool repeats = false)
         {
@@ -65,10 +65,10 @@ namespace SharpRL.Framework
         /// <summary>
         /// Update the interpolators, providing the elapsed time since the last update, typically in fractions of a second.
         /// </summary>
-        /// <param name="elapsed"></param>
+        /// <param name="elapsed">The amount of time in seconds since the last update call</param>
         public void Update(float elapsed)
         {
-            interps.Iterate(elapsed, (t) =>
+            interps.Iterate( t =>
             {
                 t.Update(elapsed);
                 if (!t.IsActive)
@@ -78,7 +78,8 @@ namespace SharpRL.Framework
     }
 
     /// <summary>
-    /// An object that linearly interpolates from 0 to 1 for a given length of time.
+    /// An object that linearly interpolates from 0 to 1 for a given length of time. Use an InterpolatorCollection
+    /// to create Interpolator objects.
     /// </summary>
     public sealed class Interpolator
     {

@@ -23,6 +23,9 @@ using System;
 
 namespace RLGui
 {
+    /// <summary>
+    /// Determines where the frame title is printed in relation to the frame.
+    /// </summary>
     public enum FrameTitleLocation
     {
         UpperLeft,

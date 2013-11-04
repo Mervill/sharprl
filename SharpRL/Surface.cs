@@ -99,7 +99,44 @@ namespace SharpRL
 
     #endregion
 
+    /// <summary>
+    /// Contains values to use with BlitAlpha.
+    /// </summary>
+    public struct AlphaMode
+    {
+        /// <summary>
+        /// Determines the foreground color alpha. A value of 0.0 (minimum) would use the destination surface
+        /// foreground color.  A value of 1.0 (maximum) would use the source surface foreground color. If the 
+        /// source cell is a blank (space), and if CharBleed is not 1.0, then CharBleed is used to determine
+        /// the final foreground color instead.
+        /// </summary>
+        public float FGColorAlpha { get; set; }
 
+        /// <summary>
+        /// Determines the background color alpha. A value of 0.0 (minimum) would use the destination surface
+        /// background color.  A value of 1.0 (maximum) would use the source surface background color.
+        /// </summary>
+        public float BGColorAlpha { get; set; }
+
+        /// <summary>
+        /// Determines how to blend when the source cell is a blank (space) character. If this is set to 1.0f, 
+        /// the destination character will not show through, and FGColorAlpha will be used to determine the foreground
+        /// color. Other values for this property behave similar to FGColorAlpha.
+        /// </summary>
+        public float CharBleed { get; set; }
+
+        /// <summary>
+        /// Constructs an AlphaMode instance using the provided value for BGColorAlpha and CharBleed. FGColorAlpha
+        /// is set to 1. This method is here to retain backward compatibility when the alpha could only be set
+        /// by a single value.
+        /// </summary>
+        /// <param name="alpha"></param>
+        /// <returns></returns>
+        public static AlphaMode BasicAlpha(float alpha)
+        {
+            return new AlphaMode() { FGColorAlpha = 1f, BGColorAlpha = alpha, CharBleed = alpha };
+        }
+    }
 
     /// <summary>
     /// Base class for Surface objects, exposes various drawing operations
@@ -850,6 +887,25 @@ namespace SharpRL
         }
 
         /// <summary>
+        /// Copies the entire source surface to the destination surface using simulated alpha transparency.
+        /// Areas which fall outside the destination surface are clipped.
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="dest"></param>
+        /// <param name="destX"></param>
+        /// <param name="destY"></param>
+        /// <param name="alpha"></param>
+        public static void BlitAlpha(Surface src, Surface dest, int destX, int destY, float alpha)
+        {
+            if (src == null)
+                throw new ArgumentNullException("src");
+            if (dest == null)
+                throw new ArgumentNullException("dest");
+
+            BlitAlpha(src, src.Rect, dest, destX, destY, alpha);
+        }
+
+        /// <summary>
         /// Copies a portion of the source surface to the destination surface using simulated alpha transparency.
         /// Areas wich would fall outside the destination surface are clipped.
         /// </summary>
@@ -858,8 +914,66 @@ namespace SharpRL
         /// <param name="srcRect"></param>
         /// <param name="destX"></param>
         /// <param name="destY"></param>
-        /// <param name="alpha">Alpha from 0 to 1 inclusive</param>
+        /// <param name="alpha">Alpha from 0 to 1 inclusive, where 0 is fully transparent and 1 is fully opaque</param>
         public static void BlitAlpha(Surface src, Rectangle srcRect, Surface dest, int destX, int destY, float alpha)
+        {
+            if (src == null)
+                throw new ArgumentNullException("src");
+            if (dest == null)
+                throw new ArgumentNullException("dest");
+
+            BlitAlpha(src, srcRect, dest, destX, destY, AlphaMode.BasicAlpha(alpha));
+
+            //Cell srcCell, dstCell;
+            //Color backCol, foreCol;
+            //char ch;
+
+            //Rectangle blitRect = new Rectangle(destX, destY, srcRect.Width, srcRect.Height);
+            //int deltax = srcRect.Left - blitRect.Left;
+            //int deltay = srcRect.Top - blitRect.Top;
+
+            //blitRect = Rectangle.Intersect(blitRect, new Rectangle(0, 0, dest.Width, dest.Height));
+
+            //for (int y = blitRect.Top; y < blitRect.Bottom; y++)
+            //{
+            //    for (int x = blitRect.Left; x < blitRect.Right; x++)
+            //    {
+            //        int sx = deltax + x;
+            //        int sy = deltay + y;
+
+            //        srcCell = src.GetCellUnchecked(sx, sy);
+            //        dstCell = dest.GetCellUnchecked(x, y);
+
+            //        backCol = ColorHelper.Lerp(dstCell.bgColor, srcCell.bgColor, alpha);
+
+            //        if (srcCell.ch == ' ')
+            //        {
+            //            foreCol = ColorHelper.Lerp(dstCell.fgColor, srcCell.bgColor, alpha);
+            //            ch = dstCell.ch;
+            //        }
+            //        else
+            //        {
+            //            foreCol = srcCell.fgColor;
+            //            //foreCol = ColorHelper.Lerp(dstCell.fgColor, srcCell.bgColor, alpha);
+            //            ch = srcCell.ch;
+            //        }
+
+            //        dest.SetCellUnchecked(x, y, ch, foreCol, backCol);
+            //    }
+            //}
+        }
+
+        /// <summary>
+        /// Copies a portion of the source surface to the destination surface using simulated alpha transparency.
+        /// Areas wich would fall outside the destination surface are clipped.
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="srcRect"></param>
+        /// <param name="dest"></param>
+        /// <param name="destX"></param>
+        /// <param name="destY"></param>
+        /// <param name="mode">The alpha blending values to use</param>
+        public static void BlitAlpha(Surface src, Rectangle srcRect, Surface dest, int destX, int destY, AlphaMode mode)
         {
             if (src == null)
                 throw new ArgumentNullException("src");
@@ -876,10 +990,6 @@ namespace SharpRL
 
             blitRect = Rectangle.Intersect(blitRect, new Rectangle(0, 0, dest.Width, dest.Height));
 
-
-            //bool dstIsRoot = dest is RootSurface;
-            //RootSurface dstAsRoot = dest as RootSurface;
-
             for (int y = blitRect.Top; y < blitRect.Bottom; y++)
             {
                 for (int x = blitRect.Left; x < blitRect.Right; x++)
@@ -890,44 +1000,26 @@ namespace SharpRL
                     srcCell = src.GetCellUnchecked(sx, sy);
                     dstCell = dest.GetCellUnchecked(x, y);
 
-                    //int di = x + y * dest.Width;
-                    //int si = sx + sy * src.Width;
+                    if (mode.BGColorAlpha == 0f)
+                        backCol = dstCell.bgColor;
+                    else if (mode.BGColorAlpha == 1f)
+                        backCol = srcCell.bgColor;
+                    else
+                        backCol = ColorHelper.Lerp(dstCell.bgColor, srcCell.bgColor, mode.BGColorAlpha);
 
-                    //backCol = ColorHelper.Lerp(dest.cells[di].bgColor, src.cells[si].bgColor, alpha);
-                    backCol = ColorHelper.Lerp(dstCell.bgColor, srcCell.bgColor, alpha);
-
-                    if (srcCell.ch == ' ')
+                    if (srcCell.ch == ' ' && mode.CharBleed != 1)
                     {
-                        foreCol = ColorHelper.Lerp(dstCell.fgColor, srcCell.bgColor, alpha);
+                        foreCol = ColorHelper.Lerp(dstCell.fgColor, srcCell.bgColor, mode.CharBleed);
                         ch = dstCell.ch;
                     }
                     else
                     {
-                        foreCol = srcCell.fgColor;
+                        //foreCol = srcCell.fgColor;
+                        foreCol = ColorHelper.Lerp(dstCell.fgColor, srcCell.fgColor, mode.FGColorAlpha);
                         ch = srcCell.ch;
                     }
-                    //if (src.cells[si].ch == ' ')
-                    //{
-                    //    foreCol = ColorHelper.Lerp(dest.cells[di].fgColor, src.cells[si].bgColor, alpha);
-
-                    //    ch = dest.cells[di].ch;
-                    //}
-                    //else
-                    //{
-                    //    foreCol = src.cells[si].fgColor;
-                    //    ch = src.cells[si].ch;
-                    //}
-
-                    //dest.cells[di].bgColor = backCol;
-                    //dest.cells[di].fgColor = foreCol;
-                    //dest.cells[di].ch = ch;
 
                     dest.SetCellUnchecked(x, y, ch, foreCol, backCol);
-
-                    //if (dstIsRoot)
-                    //{
-                    //    dstAsRoot.dirty[x + y * dest.Width] = 1;
-                    //}
                 }
             }
         }

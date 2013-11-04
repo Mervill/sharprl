@@ -94,12 +94,10 @@ namespace SharpRL
 
         private void Initialize(GameConsole gameConsole, Bitmap bitmap, int tileWidth, int tileHeight)
         {
-            this.image = new Bitmap(bitmap);
+            gameConsole.Renderer.RegisterImageResource(bitmap, out handle);
 
-            gameConsole.Renderer.RegisterImageResource(image, out handle);
-
-            numberOfColumns = image.Width / tileWidth;
-            numberOfRows = image.Height / tileHeight;
+            numberOfColumns = bitmap.Width / tileWidth;
+            numberOfRows = bitmap.Height / tileHeight;
 
             TileSize = new Size(tileWidth, tileHeight);
         }
@@ -111,7 +109,6 @@ namespace SharpRL
 
         internal int numberOfColumns;
         internal int numberOfRows;
-        internal Bitmap image;
 
         #endregion
     }

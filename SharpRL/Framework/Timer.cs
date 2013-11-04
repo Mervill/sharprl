@@ -51,7 +51,7 @@ namespace SharpRL.Framework
         /// <param name="length">Length of time before the tick action is invoked</param>
         /// <param name="repeats">True if the timer resets after each tick</param>
         /// <param name="tick">The delegate that is called after the specified length of time has elapsed</param>
-        /// <returns></returns>
+        /// <returns>The created Timer object</returns>
         public Timer AddTimer(float length, bool repeats, Action<Timer> tick)
         {
             Timer t = new Timer(length, repeats, tick);
@@ -62,12 +62,12 @@ namespace SharpRL.Framework
         }
 
         /// <summary>
-        /// Update the timers in this collection, providing the elapsed time
+        /// Update the timers in this collection, providing the elapsed time.
         /// </summary>
         /// <param name="elapsed">The elapsed time since the last update, typically in fractions of a second</param>
         public void Update(float elapsed)
         {
-            timers.Iterate(elapsed, (t) =>
+            timers.Iterate( t =>
                 {
                     t.Update(elapsed);
                     if (!t.IsActive)
@@ -78,7 +78,8 @@ namespace SharpRL.Framework
 
     /// <summary>
     /// An object that invokes an action after an amount of time has elapsed and
-    /// optionally continues repeating until told to stop.
+    /// optionally continues repeating until told to stop. Use a TimerCollection to
+    /// create Timer objects.
     /// </summary>
     public sealed class Timer
     {
@@ -157,24 +158,17 @@ namespace SharpRL.Framework
 
         internal void Update(float elapsed)
         {
-            // if a timer is stopped manually, it may not
-            // be valid at this point so we skip i
             if (!valid)
                 return;
 
-            // update the timer's time
             time += elapsed;
 
-            // if the timer passed its tick length...
             if (time >= tickLength)
             {
-                // perform the action
                 tick(this);
 
-                // subtract the tick length in case we need to repeat
                 time -= tickLength;
 
-                // if the timer doesn't repeat, it is no longer valid
                 valid = repeats;
 
                 if (!valid)

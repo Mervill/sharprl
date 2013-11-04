@@ -29,7 +29,9 @@ namespace SharpRL.Framework
 {
     /// <summary>
     /// A simple collection of items which defers insertions and removals so that these
-    /// operations can be performed while the loop is being iterated through.
+    /// operations can be performed while the loop is being iterated through. Items
+    /// contained in an IterateCollection are stored internally in a HashSet, so they
+    /// need to be unique.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public class IterateCollection<T>
@@ -48,7 +50,7 @@ namespace SharpRL.Framework
         /// Adds the object to the set collection. If called during the Iterate loop, the add operation
         /// will be deferred until Iterate is complete.
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">The item to be added</param>
         public void Add(T item)
         {
             if (isIterating)
@@ -65,7 +67,7 @@ namespace SharpRL.Framework
         /// Removes the actor from the set collection. If called during the Iterate loop, the remove operation
         /// will be deferred until Iterate is complete.
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">The item to be removed</param>
         public void Remove(T item)
         {
             if (isIterating)
@@ -81,7 +83,7 @@ namespace SharpRL.Framework
         /// <summary>
         /// Returns true if the set collection contains the specified object
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">The item to check</param>
         /// <returns></returns>
         public bool Contains(T item)
         {
@@ -102,9 +104,8 @@ namespace SharpRL.Framework
         /// Iterate through each item in the collection, calling the OnIterate delegate
         /// for each item
         /// </summary>
-        /// <param name="elapsed"></param>
-        /// <param name="OnIterate"></param>
-        public void Iterate(float elapsed, Action<T> OnIterate)
+        /// <param name="OnIterate">The delegate called on each item in the collection</param>
+        public void Iterate(Action<T> OnIterate)
         {
             isIterating = true;
             foreach (var actor in items)

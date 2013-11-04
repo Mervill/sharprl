@@ -33,6 +33,7 @@ namespace RLGui
     {
         /// <summary>
         /// Creates a ControlPigments object, copying values from the given object
+        /// The order in which states are checked for pigment are as follows: Selected, MouseOver, and Normal 
         /// </summary>
         /// <param name="from"></param>
         public ControlPigments(ControlPigments from)
@@ -40,12 +41,10 @@ namespace RLGui
             if (from == null)
                 throw new ArgumentNullException("from");
 
-            BorderInactive = from.BorderInactive;
             BorderMouseOver = from.BorderMouseOver;
             BorderNormal = from.BorderNormal;
             BorderSelected = from.BorderSelected;
 
-            ViewInactive = from.ViewInactive;
             ViewMouseOver = from.ViewMouseOver;
             ViewNormal = from.ViewNormal;
             ViewSelected = from.ViewSelected;
@@ -56,21 +55,14 @@ namespace RLGui
         /// </summary>
         public ControlPigments()
         {
-            BorderInactive = new Pigment(Color.Gray, Color.Black);
-            BorderMouseOver = new Pigment(Color.Gold, Color.Black);
+            BorderMouseOver = Pigment.WhiteBlack;
             BorderNormal = Pigment.WhiteBlack;
-            BorderSelected = Pigment.BlackWhite;
+            BorderSelected = Pigment.WhiteBlack;
 
-            ViewInactive = new Pigment(Color.Gray, Color.Black);
             ViewMouseOver = Pigment.WhiteBlack;
             ViewNormal = Pigment.WhiteBlack;
-            ViewSelected = Pigment.BlackWhite;
+            ViewSelected = Pigment.WhiteBlack;
         }
-
-        /// <summary>
-        /// The border pigment when the control is Inactive
-        /// </summary>
-        public Pigment BorderInactive { get; set; }
 
         /// <summary>
         /// The border pigment when the mouse is over the control
@@ -87,11 +79,6 @@ namespace RLGui
         /// button click or down action
         /// </summary>
         public Pigment BorderSelected { get; set; }
-
-        /// <summary>
-        /// The view pigment when the control is Inactive
-        /// </summary>
-        public Pigment ViewInactive { get; set; }
 
         /// <summary>
         /// The view pigment when the mouse is over the control

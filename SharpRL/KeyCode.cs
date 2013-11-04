@@ -117,6 +117,8 @@ namespace SharpRL
         Slash,
         Backslash,
         Tilde,
+        Clear,
+        Menu,
 
         Keypad0,
         Keypad1,

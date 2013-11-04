@@ -27,16 +27,36 @@ using SharpRL;
 
 namespace RLGui
 {
+
+    /// <summary>
+    /// Data used by ListBox and MenuBox items.
+    /// </summary>
     public class ItemData
     {
+        /// <summary>
+        /// Construct an ItemData object
+        /// </summary>
+        /// <param name="label"></param>
+        /// <param name="tooltip"></param>
         public ItemData(string label, string tooltip)
             : this(label, tooltip, null)
         { }
 
+        /// <summary>
+        /// Construct an ItemData object
+        /// </summary>
+        /// <param name="label"></param>
         public ItemData(string label)
             : this(label, null, null)
         { }
 
+
+        /// <summary>
+        /// Construct an ItemData object
+        /// </summary>
+        /// <param name="label"></param>
+        /// <param name="tooltip"></param>
+        /// <param name="userData"></param>
         public ItemData(string label, string tooltip, object userData)
         {
             Label = label;
@@ -44,20 +64,45 @@ namespace RLGui
             UserData = userData;
         }
 
+        /// <summary>
+        /// The text shown for the list item
+        /// </summary>
         public string Label { get; set; }
 
+        /// <summary>
+        /// The Tooltip text shown for this item, or null or empty string for none.
+        /// </summary>
         public string Tooltip { get; set; }
 
+        /// <summary>
+        /// Contains any other special data attached to this list item
+        /// </summary>
         public Object UserData { get; set; }
     }
 
     public class ListBoxTemplate : ControlTemplate
     {
-        public ListBoxTemplate()
+        public ListBoxTemplate(IEnumerable<ItemData> items)
         {
             InitialSelected = -1;
-            Items = new List<ItemData>();
+
+            if (items != null)
+                Items = new List<ItemData>(items);
+            else
+                Items = new List<ItemData>();
+
             HAlign = HorizontalAlignment.Left;
+
+            Pigments = new ControlPigments()
+            {
+                ViewMouseOver = new Pigment(Color.Gold, Color.Black),
+                ViewSelected = new Pigment(Color.Black, Color.White)
+            };
+        }
+
+        public ListBoxTemplate()
+            :this(null)
+        {
         }
 
         public int InitialSelected { get; set; }
@@ -90,12 +135,26 @@ namespace RLGui
         }
     }
 
+    public class ListItemEventArgs : EventArgs
+    {
+        public ListItemEventArgs()
+        { }
 
+        public ListItemEventArgs(int index)
+        {
+            this.ItemIndex = index;
+        }
+
+        public int ItemIndex { get; set; }
+    }
 
     public class ListBox : Control
     {
         private List<ItemData> items;
 
+        public event EventHandler<ListItemEventArgs> SelectedItemChanged;
+        public event EventHandler<ListItemEventArgs> MouseOverItemChanged;
+        
         public ListBox(Point position, ListBoxTemplate template)
             :base(position, template)
         {
@@ -103,6 +162,7 @@ namespace RLGui
             HAlign = template.HAlign;
 
             CurrentSelected = template.InitialSelected;
+            CurrentMouseOver = -1;
 
             if (CurrentSelected < 0 || CurrentSelected >= items.Count)
                 CurrentSelected = -1;
@@ -112,6 +172,8 @@ namespace RLGui
 
         public int CurrentSelected { get; private set; }
 
+        public int CurrentMouseOver { get; private set; }
+
         public ItemData this[int index]
         {
             get
@@ -120,9 +182,96 @@ namespace RLGui
             }
         }
 
+        public int Count
+        {
+            get { return items.Count; }
+        }
+
+        protected int GetItemIndexAt(Point localPos)
+        {
+            if (ViewRect.Contains(localPos))
+            {
+                return localPos.Y - ViewRect.Y;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+
+        protected internal override void OnMouseMove(MouseMessageData mouseInfo)
+        {
+            base.OnMouseMove(mouseInfo);
+
+            int index = GetItemIndexAt(mouseInfo.LocalPos);
+
+            if (CurrentMouseOver != index)
+            {
+                CurrentMouseOver = index;
+                if (MouseOverItemChanged != null)
+                    MouseOverItemChanged(this, new ListItemEventArgs(index));
+            }
+        }
+
+        protected internal override void OnMouseLeave()
+        {
+            base.OnMouseLeave();
+
+            CurrentMouseOver = -1;
+        }
+
+        protected internal override void OnMouseButtonDown(MouseMessageData mouseInfo)
+        {
+            base.OnMouseButtonDown(mouseInfo);
+
+            if (mouseInfo.Button == MouseButton.Left)
+            {
+                int index = GetItemIndexAt(mouseInfo.LocalPos);
+
+                if (index != -1)
+                {
+                    if (CurrentSelected != index)
+                    {
+                        CurrentSelected = index;
+
+                        if (SelectedItemChanged != null)
+                            SelectedItemChanged(this, new ListItemEventArgs(index));
+                    }
+                }
+            }
+        }
+
+        public override string ToolTipText
+        {
+            get
+            {
+                if (CurrentMouseOver != -1)
+                {
+                    return items[CurrentMouseOver].Tooltip;
+                }
+                else
+                {
+                    return base.ToolTipText;
+                }
+            }
+        }
+
         protected override void DrawContent()
         {
-            throw new System.NotImplementedException();
+            Pigment pigment;
+
+            for (int i = 0; i < Count; i++)
+            {
+                if (i == CurrentSelected)
+                    pigment = Pigments.ViewSelected;
+                else if (i == CurrentMouseOver)
+                    pigment = Pigments.ViewMouseOver;
+                else
+                    pigment = Pigments.ViewNormal;
+
+                DrawingSurface.PrintStringAligned(ViewRect.X, ViewRect.Y + i,
+                    items[i].Label, ViewRect.Width, HAlign, pigment.Foreground, pigment.Background);
+            }
         }
     }
 }
