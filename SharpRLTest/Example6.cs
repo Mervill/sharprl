@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using SharpRL;
-using SharpRL.Framework;
+using SharpRL.Toolkit;
 using System.Drawing;
 
 namespace SharpRLTest

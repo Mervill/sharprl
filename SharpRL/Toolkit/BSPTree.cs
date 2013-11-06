@@ -25,7 +25,7 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 
-namespace SharpRL.Framework
+namespace SharpRL.Toolkit
 {
     /// <summary>
     /// Represents a binary space partition tree.

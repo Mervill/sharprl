@@ -44,16 +44,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Button.cs" />
-    <Compile Include="CheckBox.cs" />
-    <Compile Include="Control.cs" />
-    <Compile Include="EntryBox.cs" />
+    <Compile Include="Controls\Button.cs" />
+    <Compile Include="Controls\ButtonTemplate.cs" />
+    <Compile Include="Controls\CheckButton.cs" />
+    <Compile Include="Controls\CheckButtonTemplate.cs" />
+    <Compile Include="Controls\Control.cs" />
+    <Compile Include="Controls\ControlTemplate.cs" />
+    <Compile Include="Controls\ListBoxTemplate.cs" />
+    <Compile Include="Controls\MenuBoxTemplate.cs" />
+    <Compile Include="Controls\NumberEntryTemplate.cs" />
+    <Compile Include="Controls\RadioBoxTemplate.cs" />
+    <Compile Include="Controls\TextEntry.cs" />
+    <Compile Include="Controls\TextEntryTemplate.cs" />
     <Compile Include="FrameTitleLocation.cs" />
-    <Compile Include="ListBox.cs" />
+    <Compile Include="Controls\ListBox.cs" />
+    <Compile Include="Controls\MenuBox.cs" />
+    <Compile Include="Controls\NumberEntry.cs" />
     <Compile Include="Pigment.cs" />
-    <Compile Include="MouseDragData.cs" />
+    <Compile Include="MouseMessageData.cs" />
     <Compile Include="DefaultPigment.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Controls\RadioBox.cs" />
     <Compile Include="ToolTip.cs" />
     <Compile Include="Widget.cs" />
     <Compile Include="Component.cs" />

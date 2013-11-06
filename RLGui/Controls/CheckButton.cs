@@ -25,24 +25,13 @@ using System.Linq;
 using System.Drawing;
 using SharpRL;
 
-namespace RLGui
+namespace RLGui.Controls
 {
-    public class CheckBoxTemplate : ButtonTemplate
+
+
+    public class CheckButton : Button
     {
-        public CheckBoxTemplate()
-        {
-            CheckedChar = (char)SpecialChar.CheckBoxSet;
-            UnCheckedChar = (char)SpecialChar.CheckBoxUnset;
-        }
-
-        public char CheckedChar { get; set; }
-
-        public char UnCheckedChar { get; set; }
-    }
-
-    public class CheckBox : Button
-    {
-        public CheckBox(Point position, CheckBoxTemplate template)
+        public CheckButton(Point position, CheckButtonTemplate template)
             : base(position, template)
         {
             CheckedChar = template.CheckedChar;

@@ -24,7 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SharpRL
+namespace SharpRL.Toolkit
 {
     /// <summary>
     /// A simple wrapper that flattens a 2-dimensional array to increase performance.

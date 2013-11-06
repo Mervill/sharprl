@@ -163,6 +163,21 @@ namespace RLGui
             manager.RequestKBRelease(this);
         }
 
+        public void Close()
+        {
+            OnClosing();
+
+            manager.RemoveComponent(this);
+        }
+
+        public event EventHandler Closing;
+
+        protected virtual void OnClosing()
+        {
+            if (Closing != null)
+                Closing(this, null);
+        }
+
         /// <summary>
         /// Called when this component receives a raw keyboard key press message.
         /// Override to provide custom message handling code after calling base method

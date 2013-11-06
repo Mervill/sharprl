@@ -48,21 +48,21 @@
   <ItemGroup>
     <Compile Include="EventArgs.cs" />
     <Compile Include="FrameDefinition.cs" />
-    <Compile Include="Framework\Array2d.cs" />
-    <Compile Include="Framework\Bresenham.cs" />
-    <Compile Include="Framework\BSPNode.cs" />
-    <Compile Include="Framework\BSPTree.cs" />
-    <Compile Include="Framework\ColorHelper.cs" />
-    <Compile Include="Framework\Dice.cs" />
-    <Compile Include="Framework\FieldOfView.cs" />
+    <Compile Include="Toolkit\Array2d.cs" />
+    <Compile Include="Toolkit\Bresenham.cs" />
+    <Compile Include="Toolkit\BSPNode.cs" />
+    <Compile Include="Toolkit\BSPTree.cs" />
+    <Compile Include="Toolkit\ColorHelper.cs" />
+    <Compile Include="Toolkit\Dice.cs" />
+    <Compile Include="Toolkit\FieldOfView.cs" />
     <Compile Include="Font.cs" />
-    <Compile Include="Framework\FOVAlgorithm.cs" />
-    <Compile Include="Framework\MathHelper.cs" />
-    <Compile Include="Framework\RandomHelper.cs" />
-    <Compile Include="Framework\RectangleHelper.cs" />
+    <Compile Include="Toolkit\FOVAlgorithm.cs" />
+    <Compile Include="Toolkit\MathHelper.cs" />
+    <Compile Include="Toolkit\RandomHelper.cs" />
+    <Compile Include="Toolkit\RectangleHelper.cs" />
     <Compile Include="GameConsole.cs" />
-    <Compile Include="Framework\Interpolator.cs" />
-    <Compile Include="Framework\IterateCollection.cs" />
+    <Compile Include="Toolkit\Interpolator.cs" />
+    <Compile Include="Toolkit\IterateCollection.cs" />
     <Compile Include="KeyboardConverter.cs" />
     <Compile Include="KeyCode.cs" />
     <Compile Include="KeyCharEventData.cs" />
@@ -70,17 +70,17 @@
     <Compile Include="MemorySurface.cs" />
     <Compile Include="MouseButton.cs" />
     <Compile Include="MouseEventData.cs" />
-    <Compile Include="Framework\MRPAS.cs" />
-    <Compile Include="Framework\PriorityQueue.cs" />
+    <Compile Include="Toolkit\MRPAS.cs" />
+    <Compile Include="Toolkit\PriorityQueue.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Framework\ShadowCasting.cs" />
-    <Compile Include="Framework\SpatialAStar.cs" />
+    <Compile Include="Toolkit\ShadowCasting.cs" />
+    <Compile Include="Toolkit\SpatialAStar.cs" />
     <Compile Include="RootSurface.cs" />
     <Compile Include="SpecialKeyFlags.cs" />
     <Compile Include="Surface.cs" />
     <Compile Include="SurfaceView.cs" />
     <Compile Include="TileSheet.cs" />
-    <Compile Include="Framework\Timer.cs" />
+    <Compile Include="Toolkit\Timer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="design.txt" />

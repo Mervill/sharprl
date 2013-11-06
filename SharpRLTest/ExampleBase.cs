@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using SharpRL;
-using SharpRL.Framework;
+using SharpRL.Toolkit;
 using System.Drawing;
 
 namespace SharpRLTest

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 using SharpRL;
-using SharpRL.Framework;
+using SharpRL.Toolkit;
 
 namespace SharpRLTest
 {

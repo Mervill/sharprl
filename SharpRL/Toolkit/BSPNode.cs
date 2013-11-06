@@ -25,7 +25,7 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 
-namespace SharpRL
+namespace SharpRL.Toolkit
 {
     /// <summary>
     /// The direction a BSPNode region is split

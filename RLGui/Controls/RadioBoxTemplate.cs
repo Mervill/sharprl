@@ -1,4 +1,4 @@
-﻿//Copyright (c) 2012 Shane Baker
+﻿//Copyright (c) 2013 Shane Baker
 //
 //Permission is hereby granted, free of charge, to any person obtaining a copy
 //of this software and associated documentation files (the "Software"), to deal
@@ -22,44 +22,55 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Drawing;
-using SharpRL.Toolkit;
+using SharpRL;
 
-namespace SharpRL
+namespace RLGui.Controls
 {
-    /// <summary>
-    /// This the main drawing surface of a GameConsole, which gets shown on the screen after a flush
-    /// </summary>
-    public class RootSurface : MemorySurface
+    public class RadioBoxTemplate : ListBoxTemplate
     {
-        internal byte[] dirty;
-        GameConsole gameConsole;
-
-        internal RootSurface(int width, int height, GameConsole gameConsole)
-            : base(width, height)
+        public RadioBoxTemplate(IEnumerable<ItemData> items)
+            : base(items)
         {
-            dirty = new byte[width * height];
+            RadioSetChar = (char)SpecialChar.RadioSet;
+            RadioUnsetChar = (char)SpecialChar.RadioUnset;
+            RadioOnLeft = true;
 
-            this.gameConsole = gameConsole;
+            Pigments.ViewMouseOver = new Pigment(Color.Gold, Color.Black);
+            Pigments.ViewSelected = Pigment.WhiteBlack;
         }
 
-        internal override void SetCellUnchecked(int cx, int cy, char? ch, Color? fg, Color? bg)
+        public RadioBoxTemplate()
+            : this(null)
+        { }
+
+        public char RadioSetChar { get; set; }
+
+        public char RadioUnsetChar { get; set; }
+
+        public bool RadioOnLeft { get; set; }
+
+        public override Size CalcSizeToContent()
         {
-            base.SetCellUnchecked(cx, cy, ch, fg, bg);
-            dirty[cx + cy * Width] = 1;
-        }
+            int width, height;
 
-        /// <summary>
-        /// Clears the entire surface, using the default colors and character.
-        /// </summary>
-        public override void Clear()
-        {
-            base.Clear();
+            height = Items.Count;
+            width = 1;
 
-            gameConsole.Clear(DefaultBackground);
-            Array.Clear(dirty, 0, dirty.Length);
+            foreach (var itm in Items)
+            {
+                if (itm.Label.Length > width)
+                    width = itm.Label.Length;
+            }
 
+
+            if (HasFrame)
+            {
+                width += 4;
+                height += 2;
+            }
+
+            return new Size(width, height);
         }
     }
 }

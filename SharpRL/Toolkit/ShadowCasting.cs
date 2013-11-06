@@ -15,7 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SharpRL.Framework
+namespace SharpRL.Toolkit
 {
     internal class ShadowCasting<TFovNode> : FOVAlgorithm<TFovNode> where TFovNode : IFovCell
     {

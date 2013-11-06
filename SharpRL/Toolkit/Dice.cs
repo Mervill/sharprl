@@ -24,7 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SharpRL
+namespace SharpRL.Toolkit
 {
     /// <summary>
     /// An immutable type representing a set of rpg dice along with a modifier.

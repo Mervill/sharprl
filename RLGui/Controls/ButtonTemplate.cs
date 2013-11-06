@@ -25,7 +25,7 @@ using System.Linq;
 using System.Drawing;
 using SharpRL;
 
-namespace RLGui
+namespace RLGui.Controls
 {
     public class ButtonTemplate : ControlTemplate
     {
@@ -74,52 +74,5 @@ namespace RLGui
 
             return new Size(width, height);
         }
-    }
-
-    /// <summary>
-    /// Represents a Panel that has a label and changes rendering pigment
-    /// depending on various states
-    /// </summary>
-    public class Button : Control
-    {
-        /// <summary>
-        /// Construct a Button with a given position and size.
-        /// </summary>
-        public Button(Point position, ButtonTemplate template)
-            :base(position, template)
-        {
-            
-            Label = template.Label;
-            HAlignment = template.HAlignment;
-            VAlignment = template.VAlignment;
-        }
-
-        /// <summary>
-        /// Get or set the string used to render the button text
-        /// </summary>
-        public string Label { get; set; }
-
-        /// <summary>
-        /// Get or set the alignment of the label within the button area
-        /// </summary>
-        public HorizontalAlignment HAlignment { get; set; }
-
-        public VerticalAlignment VAlignment { get; set; }
-
-        /// <summary>
-        /// Draws the button label
-        /// </summary>
-        protected override void DrawContent()
-        {
-            var pigment = GetCurrentViewPigment();
-
-            DrawingSurface.DefaultBackground = pigment.Background;
-            DrawingSurface.DefaultForeground = pigment.Foreground;
-
-            DrawingSurface.Clear();
-
-            DrawingSurface.PrintStringRect(ViewRect, Label, HAlignment, VAlignment);
-        }
-
     }
 }

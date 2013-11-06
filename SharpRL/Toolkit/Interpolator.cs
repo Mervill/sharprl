@@ -25,7 +25,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SharpRL.Framework
+namespace SharpRL.Toolkit
 {
     /// <summary>
     /// A collection of interpolator objects that updates and automatically removes invactive

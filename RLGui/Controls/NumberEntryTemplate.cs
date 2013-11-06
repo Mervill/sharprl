@@ -1,4 +1,4 @@
-﻿//Copyright (c) 2012 Shane Baker
+﻿//Copyright (c) 2013 Shane Baker
 //
 //Permission is hereby granted, free of charge, to any person obtaining a copy
 //of this software and associated documentation files (the "Software"), to deal
@@ -22,41 +22,44 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Drawing;
+using SharpRL;
+using SharpRL.Toolkit;
 
-namespace SharpRL.Framework
+namespace RLGui.Controls
 {
     /// <summary>
-    /// Static utility methods for working with System.Drawing.Rectangle objects
+    /// 
     /// </summary>
-    public static class RectangleHelper
+    /// <remarks>
+    /// The following template base properties are ignored when constructing a NumberEntryBox:
+    /// InitialText
+    /// ValidChars
+    /// </remarks>
+    public class NumberEntryTemplate : TextEntryTemplate
     {
-        /// <summary>
-        /// Iterate through all the integer points in the rectangle. The points start at the top
-        /// left, and are returned right to left and top to bottom.
-        /// </summary>
-        /// <param name="rect"></param>
-        /// <returns></returns>
-        public static IEnumerable<Point> Points(this Rectangle rect)
-        {
-            for (int y = rect.Top; y < rect.Bottom; y++)
-            {
-                for (int x = rect.Left; x < rect.Right; x++)
-                {
-                    yield return new Point(x, y);
-                }
-            }
-        }
 
-        /// <summary>
-        /// Get the center point of the rectangle. Fractions are dropped and returned as an integer.
-        /// </summary>
-        /// <param name="rect"></param>
-        /// <returns></returns>
-        public static Point Center(this Rectangle rect)
+        public int MaximumValue { get; set; }
+        public int MinimumValue { get; set; }
+        public int InitialValue { get; set; }
+
+        public override Size CalcSizeToContent()
         {
-            return new Point(rect.Left + rect.Width / 2, rect.Top + rect.Height / 2);
+            int width = NumberOfCharacters;
+
+            int minWidth = Math.Max(MaximumValue.ToString().Length, MinimumValue.ToString().Length);
+
+            width = Math.Max(width, minWidth);
+
+            int height = 1;
+
+            if (HasFrame)
+            {
+                width += 2;
+                height += 2;
+            }
+
+            return new Size(width, height);
         }
     }
 }

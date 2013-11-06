@@ -4,6 +4,7 @@ using System.Linq;
 using SharpRL;
 using RLGui;
 using System.Drawing;
+using RLGui.Controls;
 
 namespace RLGuiTest
 {
@@ -33,7 +34,7 @@ namespace RLGuiTest
             console.IsWindowResizable = false;
             console.VerticalSyncEnabled = true;
 
-            font = new FontSheet(console, "terminal16x16_gs_ro.png", FontFormat.GreyscaleAA, FontLayout.InRow);
+            font = new FontSheet(console, "terminal16x16_gs_ro.png", TransparencyMethod.ByValue, FontMapping.InRow);
 
             console.SetFont(font, true);
 
@@ -64,16 +65,22 @@ namespace RLGuiTest
                 new ItemData("Item 4", "The fourth item")
             };
 
-            var lb = new ListBox(new Point(30, 15), new ListBoxTemplate(listItems)
+            //var lb = new ListBox(new Point(30, 15), new ListBoxTemplate(listItems)
+            //{
+            //    ToolTipText = "A very fine listbox example thingy"
+            //});
+
+            var lb = new RadioBox(new Point(30, 15), new RadioBoxTemplate(listItems)
             {
-                ToolTipText = "A very fine listbox example thingy"
+                RadioSetChar = (char)7,
+                RadioUnsetChar = (char)9
             });
 
-            var cb = new CheckBox(new Point(15,2),
-                new CheckBoxTemplate() { Label = "CheckME", HasFrame = true, UnCheckedChar = 'O', CheckedChar = 'X',
+            var cb = new CheckButton(new Point(15,2),
+                new CheckButtonTemplate() { Label = "CheckME", HasFrame = true, UnCheckedChar = 'O', CheckedChar = 'X',
                 });
 
-            var eb = new EntryBox(new Point(5, 30), new EntryBoxTemplate()
+            var eb = new TextEntry(new Point(5, 30), new TextEntryTemplate()
             {
                 NumberOfCharacters = 15,
                 ReplaceOnFirstKey = false,
@@ -89,7 +96,14 @@ namespace RLGuiTest
                     }
                 };
 
-            manager.AddComponents(panel, btn, cb, lb, eb);
+            var nb = new NumberEntry(new Point(25, 30), new NumberEntryTemplate()
+            {
+                MinimumValue = -50,
+                MaximumValue = 100,
+                InitialValue = 0
+            });
+
+            manager.AddComponents(panel, btn, cb, lb, eb, nb);
         }
 
         public void Run()

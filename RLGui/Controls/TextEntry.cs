@@ -24,9 +24,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using SharpRL;
-using SharpRL.Framework;
+using SharpRL.Toolkit;
 
-namespace RLGui
+namespace RLGui.Controls
 {
     public class EntryValidationEventArgs : EventArgs
     {
@@ -51,49 +51,9 @@ namespace RLGui
         All = Letters | Numbers | Symbols
     }
 
-    public class EntryBoxTemplate : ControlTemplate
-    {
-        public EntryBoxTemplate()
-        {
-            ReplaceOnFirstKey = true;
-            HAlign = HorizontalAlignment.Left;
-            InitialText = "";
-            CursorChar = (char)SpecialChar.Block3;
 
-            Pigments = new ControlPigments()
-            {
-                ViewSelected = Pigment.BlackWhite
-            };
-        }
 
-        public bool ReplaceOnFirstKey { get; set; }
-
-        public HorizontalAlignment HAlign { get; set; }
-
-        public string InitialText { get; set; }
-
-        public char CursorChar { get; set; }
-
-        public CharValidationFlags ValidChars { get; set; }
-
-        public int NumberOfCharacters { get; set; }
-
-        public override Size CalcSizeToContent()
-        {
-            int width = NumberOfCharacters;
-            int height = 1;
-
-            if (HasFrame)
-            {
-                width += 2;
-                height += 2;
-            }
-
-            return new Size(width, height);
-        }
-    }
-
-    public class EntryBox : Control
+    public class TextEntry : Control
     {
         /// <summary>
         /// Triggered when the entered text has been committed, usually by pressing the ENTER key.
@@ -108,11 +68,11 @@ namespace RLGui
         private bool cursorOn = true;
         private bool waitingToOverwrite;
 
-        CharValidationFlags valFlags;
+        protected CharValidationFlags CharValidation { get; set; }
 
         const uint blinkDelay = 500;
 
-        public EntryBox(Point position, EntryBoxTemplate template)
+        public TextEntry(Point position, TextEntryTemplate template)
             : base(position, template)
         {
             if (IsValidText(template.InitialText))
@@ -121,7 +81,7 @@ namespace RLGui
                 ValidatedText = template.InitialText;
             }
 
-            valFlags = template.ValidChars;
+            CharValidation = template.ValidChars;
             MaximumCharacters = template.NumberOfCharacters;
 
             ReplaceOnFirstKey = template.ReplaceOnFirstKey;
@@ -164,12 +124,7 @@ namespace RLGui
         /// <summary>
         /// Get the maximum number of characters that can be typed
         /// </summary>
-        protected int MaximumCharacters { get; private set; }
-
-        /// <summary>
-        /// Gets what the entry text defaults to if there is not current or previous valid entries.
-        /// </summary>
-        protected string DefaultText { get; set; }
+        protected int MaximumCharacters { get; set; }
 
         /// <summary>
         /// Get the current position of the entry cursor, representing the position
@@ -201,25 +156,25 @@ namespace RLGui
                     return false;
             }
 
-            if (valFlags.HasFlag(CharValidationFlags.Letters))
+            if (CharValidation.HasFlag(CharValidationFlags.Letters))
             {
                 if (char.IsLetter(character))
                     return true;
             }
 
-            if (valFlags.HasFlag(CharValidationFlags.Space))
+            if (CharValidation.HasFlag(CharValidationFlags.Space))
             {
                 if (character == ' ')
                     return true;
             }
 
-            if (valFlags.HasFlag(CharValidationFlags.Numbers))
+            if (CharValidation.HasFlag(CharValidationFlags.Numbers))
             {
                 if (char.IsNumber(character))
                     return true;
             }
 
-            if (valFlags.HasFlag(CharValidationFlags.Symbols))
+            if (CharValidation.HasFlag(CharValidationFlags.Symbols))
             {
                 if ("`~!@#$|^&*()_+-={};:'\",<.>/?".Contains(character))
                 {
@@ -270,7 +225,7 @@ namespace RLGui
         /// be called.
         /// </summary>
         /// <returns></returns>
-        public bool TryCommit()
+        public virtual bool TryCommit()
         {
             if (this.CurrentText == this.ValidatedText)
                 return false;

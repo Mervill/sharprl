@@ -25,6 +25,7 @@ using System.Linq;
 using System.Text;
 using SharpRL;
 using System.Drawing;
+using RLGui.Controls;
 
 namespace RLGui
 {

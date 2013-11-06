@@ -34,7 +34,7 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 
-namespace SharpRL.Framework
+namespace SharpRL.Toolkit
 {
     /// <summary>
     /// Interface used by SpatialAStar to query whether a cell is walkable or not.

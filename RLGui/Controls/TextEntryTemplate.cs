@@ -1,4 +1,4 @@
-﻿//Copyright (c) 2012 Shane Baker
+﻿//Copyright (c) 2013 Shane Baker
 //
 //Permission is hereby granted, free of charge, to any person obtaining a copy
 //of this software and associated documentation files (the "Software"), to deal
@@ -22,44 +22,51 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Drawing;
+using SharpRL;
 using SharpRL.Toolkit;
 
-namespace SharpRL
+namespace RLGui.Controls
 {
-    /// <summary>
-    /// This the main drawing surface of a GameConsole, which gets shown on the screen after a flush
-    /// </summary>
-    public class RootSurface : MemorySurface
+    public class TextEntryTemplate : ControlTemplate
     {
-        internal byte[] dirty;
-        GameConsole gameConsole;
-
-        internal RootSurface(int width, int height, GameConsole gameConsole)
-            : base(width, height)
+        public TextEntryTemplate()
         {
-            dirty = new byte[width * height];
+            ReplaceOnFirstKey = true;
+            HAlign = HorizontalAlignment.Left;
+            InitialText = "";
+            CursorChar = (char)SpecialChar.Block3;
 
-            this.gameConsole = gameConsole;
+            Pigments = new ControlPigments()
+            {
+                ViewSelected = Pigment.BlackWhite
+            };
         }
 
-        internal override void SetCellUnchecked(int cx, int cy, char? ch, Color? fg, Color? bg)
+        public bool ReplaceOnFirstKey { get; set; }
+
+        public HorizontalAlignment HAlign { get; set; }
+
+        public string InitialText { get; set; }
+
+        public char CursorChar { get; set; }
+
+        public CharValidationFlags ValidChars { get; set; }
+
+        public int NumberOfCharacters { get; set; }
+
+        public override Size CalcSizeToContent()
         {
-            base.SetCellUnchecked(cx, cy, ch, fg, bg);
-            dirty[cx + cy * Width] = 1;
-        }
+            int width = NumberOfCharacters;
+            int height = 1;
 
-        /// <summary>
-        /// Clears the entire surface, using the default colors and character.
-        /// </summary>
-        public override void Clear()
-        {
-            base.Clear();
+            if (HasFrame)
+            {
+                width += 2;
+                height += 2;
+            }
 
-            gameConsole.Clear(DefaultBackground);
-            Array.Clear(dirty, 0, dirty.Length);
-
+            return new Size(width, height);
         }
     }
 }

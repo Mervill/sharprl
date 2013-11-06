@@ -32,7 +32,7 @@ namespace SharpRL
     /// <summary>
     /// The type of layout of the font
     /// </summary>
-    public enum FontLayout
+    public enum FontMapping
     {
         /// <summary>
         /// Increasing codes from left to right
@@ -46,25 +46,25 @@ namespace SharpRL
     }
 
     /// <summary>
-    /// Determines how the characters will be blended when drawn on the screen
+    /// Determines what pixels of the glyphs in the font source image will be transparent
     /// </summary>
-    public enum FontFormat
+    public enum TransparencyMethod
     {
         /// <summary>
         /// A key color is determined by the pixel at position 0,0.  All pixels with that color
         /// are set as fully transparent, all other pixels fully opaque
         /// </summary>
-        NoAA,
+        ByKey,
 
         /// <summary>
         /// Transparency determined by the alpha channel of the image.
         /// </summary>
-        AlphaAA,
+        ByAlpha,
 
         /// <summary>
         /// Transparency is determined by the level of the red component.
         /// </summary>
-        GreyscaleAA
+        ByValue
     }
 
     /// <summary>
@@ -203,7 +203,7 @@ namespace SharpRL
         /// <param name="fileName">A valid path to a bitmap image</param>
         /// <param name="format">The format to use to process the image</param>
         /// <param name="layout">The character layout of the image</param>
-        public FontSheet(GameConsole gameConsole, string fileName, FontFormat format, FontLayout layout)
+        public FontSheet(GameConsole gameConsole, string fileName, TransparencyMethod format, FontMapping layout)
         {
             if (gameConsole == null)
                 throw new ArgumentNullException("gameConsole");
@@ -221,7 +221,7 @@ namespace SharpRL
         /// <param name="bitmap">The source bitmap</param>
         /// <param name="format">The format to use to process the image</param>
         /// <param name="layout">The character layout of the image</param>
-        public FontSheet(GameConsole gameConsole, Bitmap bitmap, FontFormat format, FontLayout layout)
+        public FontSheet(GameConsole gameConsole, Bitmap bitmap, TransparencyMethod format, FontMapping layout)
         {
             if (gameConsole == null)
                 throw new ArgumentNullException("gameConsole");
@@ -231,9 +231,9 @@ namespace SharpRL
             Initialize(gameConsole, bitmap, format, layout);
         }
 
-        private void Initialize(GameConsole gameConsle, Bitmap bitmap, FontFormat format, FontLayout layout)
+        private void Initialize(GameConsole gameConsle, Bitmap bitmap, TransparencyMethod format, FontMapping layout)
         {
-            if (layout == FontLayout.InColumn || layout == FontLayout.InRow)
+            if (layout == FontMapping.InColumn || layout == FontMapping.InRow)
             {
                 numberOfColumns = 16;
                 numberOfRows = 16;
@@ -283,7 +283,7 @@ namespace SharpRL
         /// <param name="startFontCharY">The starting Y coordinate of the sprite in characters (not pixels)</param>
         /// <param name="layout">Layout to use to map the characters</param>
         public void MapConsecutiveAsciiCodes(char firstAsciiCode, int numberOfCodes, int startFontCharX,
-            int startFontCharY, FontLayout layout)
+            int startFontCharY, FontMapping layout)
         {
             if (startFontCharX < 0 || startFontCharX >= numberOfColumns)
                 throw new ArgumentOutOfRangeException("fontCharX");
@@ -297,7 +297,7 @@ namespace SharpRL
             {
                 MapAsciiCode((char)(firstAsciiCode + i), x, y);
 
-                if (layout == FontLayout.InColumn)
+                if (layout == FontMapping.InColumn)
                 {
                     y++;
                     if (y >= numberOfRows)
@@ -330,7 +330,7 @@ namespace SharpRL
         /// <param name="startFontCharX">The starting X coordinate of the sprite in characters (not pixels)</param>
         /// <param name="startFontCharY">The starting Y coordinate of the sprite in characters (not pixels)</param>
         /// <param name="layout">The layout used to map the characters</param>
-        public void MapString(string str, int startFontCharX, int startFontCharY, FontLayout layout)
+        public void MapString(string str, int startFontCharX, int startFontCharY, FontMapping layout)
         {
             if (startFontCharX < 0 || startFontCharX >= numberOfColumns)
                 throw new ArgumentOutOfRangeException("fontCharX");
@@ -344,7 +344,7 @@ namespace SharpRL
             {
                 MapAsciiCode(str[i], x, y);
 
-                if (layout == FontLayout.InColumn)
+                if (layout == FontMapping.InColumn)
                 {
                     y++;
                     if (y >= numberOfRows)
@@ -384,9 +384,9 @@ namespace SharpRL
         Point[] charMap;
 
 
-        private Bitmap ProcessImage(Bitmap bitmap, FontFormat type)
+        private Bitmap ProcessImage(Bitmap bitmap, TransparencyMethod type)
         {
-            if (type == FontFormat.AlphaAA)
+            if (type == TransparencyMethod.ByAlpha)
             {
                 if (bitmap.PixelFormat != System.Drawing.Imaging.PixelFormat.Format32bppArgb)
                     throw new ArgumentException("Image must have an alpha channel to use AlphaAA font type");
@@ -405,7 +405,7 @@ namespace SharpRL
                     Color c = bitmap.GetPixel(x, y);
                     Color dest;
 
-                    if (type == FontFormat.NoAA)
+                    if (type == TransparencyMethod.ByKey)
                     {
                         if (c == key)
                         {

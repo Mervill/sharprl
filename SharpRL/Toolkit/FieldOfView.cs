@@ -24,7 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SharpRL.Framework
+namespace SharpRL.Toolkit
 {
     /// <summary>
     /// Field of view methods

@@ -25,7 +25,7 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 
-namespace SharpRL
+namespace SharpRL.Toolkit
 {
     /// <summary>
     /// Static utility class for eunmerating points along a line using Bresenham's algorithm

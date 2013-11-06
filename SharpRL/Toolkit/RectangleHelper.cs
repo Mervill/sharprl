@@ -24,42 +24,39 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Drawing;
-using SharpRL.Toolkit;
 
-namespace SharpRL
+namespace SharpRL.Toolkit
 {
     /// <summary>
-    /// This the main drawing surface of a GameConsole, which gets shown on the screen after a flush
+    /// Static utility methods for working with System.Drawing.Rectangle objects
     /// </summary>
-    public class RootSurface : MemorySurface
+    public static class RectangleHelper
     {
-        internal byte[] dirty;
-        GameConsole gameConsole;
-
-        internal RootSurface(int width, int height, GameConsole gameConsole)
-            : base(width, height)
+        /// <summary>
+        /// Iterate through all the integer points in the rectangle. The points start at the top
+        /// left, and are returned right to left and top to bottom.
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <returns></returns>
+        public static IEnumerable<Point> Points(this Rectangle rect)
         {
-            dirty = new byte[width * height];
-
-            this.gameConsole = gameConsole;
-        }
-
-        internal override void SetCellUnchecked(int cx, int cy, char? ch, Color? fg, Color? bg)
-        {
-            base.SetCellUnchecked(cx, cy, ch, fg, bg);
-            dirty[cx + cy * Width] = 1;
+            for (int y = rect.Top; y < rect.Bottom; y++)
+            {
+                for (int x = rect.Left; x < rect.Right; x++)
+                {
+                    yield return new Point(x, y);
+                }
+            }
         }
 
         /// <summary>
-        /// Clears the entire surface, using the default colors and character.
+        /// Get the center point of the rectangle. Fractions are dropped and returned as an integer.
         /// </summary>
-        public override void Clear()
+        /// <param name="rect"></param>
+        /// <returns></returns>
+        public static Point Center(this Rectangle rect)
         {
-            base.Clear();
-
-            gameConsole.Clear(DefaultBackground);
-            Array.Clear(dirty, 0, dirty.Length);
-
+            return new Point(rect.Left + rect.Width / 2, rect.Top + rect.Height / 2);
         }
     }
 }

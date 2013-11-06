@@ -1,4 +1,4 @@
-﻿//Copyright (c) 2012 Shane Baker
+﻿//Copyright (c) 2013 Shane Baker
 //
 //Permission is hereby granted, free of charge, to any person obtaining a copy
 //of this software and associated documentation files (the "Software"), to deal
@@ -22,44 +22,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Drawing;
-using SharpRL.Toolkit;
+using SharpRL;
 
-namespace SharpRL
+namespace RLGui.Controls
 {
-    /// <summary>
-    /// This the main drawing surface of a GameConsole, which gets shown on the screen after a flush
-    /// </summary>
-    public class RootSurface : MemorySurface
+    public class CheckButtonTemplate : ButtonTemplate
     {
-        internal byte[] dirty;
-        GameConsole gameConsole;
-
-        internal RootSurface(int width, int height, GameConsole gameConsole)
-            : base(width, height)
+        public CheckButtonTemplate()
         {
-            dirty = new byte[width * height];
-
-            this.gameConsole = gameConsole;
+            CheckedChar = (char)SpecialChar.CheckBoxSet;
+            UnCheckedChar = (char)SpecialChar.CheckBoxUnset;
         }
 
-        internal override void SetCellUnchecked(int cx, int cy, char? ch, Color? fg, Color? bg)
-        {
-            base.SetCellUnchecked(cx, cy, ch, fg, bg);
-            dirty[cx + cy * Width] = 1;
-        }
+        public char CheckedChar { get; set; }
 
-        /// <summary>
-        /// Clears the entire surface, using the default colors and character.
-        /// </summary>
-        public override void Clear()
-        {
-            base.Clear();
-
-            gameConsole.Clear(DefaultBackground);
-            Array.Clear(dirty, 0, dirty.Length);
-
-        }
+        public char UnCheckedChar { get; set; }
     }
 }

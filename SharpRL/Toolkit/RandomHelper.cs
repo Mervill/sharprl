@@ -25,7 +25,7 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 
-namespace SharpRL.Framework
+namespace SharpRL.Toolkit
 {
     /// <summary>
     /// Static utility class for working with System.Random objects

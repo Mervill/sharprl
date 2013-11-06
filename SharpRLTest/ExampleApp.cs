@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using SharpRL;
-using SharpRL.Framework;
+using SharpRL.Toolkit;
 using System.Drawing;
 
 namespace SharpRLTest
@@ -71,10 +71,10 @@ namespace SharpRLTest
 
             // Now that we have a valid console, we can create the font objects
             fonts = new List<FontSheet>();
-            fonts.Add(new FontSheet(console, "terminal12x12_gs_ro.png", FontFormat.GreyscaleAA, FontLayout.InRow));
-            fonts.Add(new FontSheet(console, "terminal16x16_gs_ro.png", FontFormat.GreyscaleAA, FontLayout.InRow));
-            fonts.Add(new FontSheet(console, "terminal8x8_aa_as.png",  FontFormat.AlphaAA, FontLayout.InColumn));
-            fonts.Add(new FontSheet(console, "terminal10x16_gs_ro.png", FontFormat.GreyscaleAA, FontLayout.InRow));
+            fonts.Add(new FontSheet(console, "terminal12x12_gs_ro.png", TransparencyMethod.ByValue, FontMapping.InRow));
+            fonts.Add(new FontSheet(console, "terminal16x16_gs_ro.png", TransparencyMethod.ByValue, FontMapping.InRow));
+            fonts.Add(new FontSheet(console, "terminal8x8_aa_as.png",  TransparencyMethod.ByAlpha, FontMapping.InColumn));
+            fonts.Add(new FontSheet(console, "terminal10x16_gs_ro.png", TransparencyMethod.ByValue, FontMapping.InRow));
 
             // The font name list will simply be used for displaying the current font at the top of the console
             fontNames = new List<string>()

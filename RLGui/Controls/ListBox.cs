@@ -25,7 +25,7 @@ using System.Linq;
 using System.Drawing;
 using SharpRL;
 
-namespace RLGui
+namespace RLGui.Controls
 {
 
     /// <summary>
@@ -80,72 +80,19 @@ namespace RLGui
         public Object UserData { get; set; }
     }
 
-    public class ListBoxTemplate : ControlTemplate
-    {
-        public ListBoxTemplate(IEnumerable<ItemData> items)
-        {
-            InitialSelected = -1;
 
-            if (items != null)
-                Items = new List<ItemData>(items);
-            else
-                Items = new List<ItemData>();
-
-            HAlign = HorizontalAlignment.Left;
-
-            Pigments = new ControlPigments()
-            {
-                ViewMouseOver = new Pigment(Color.Gold, Color.Black),
-                ViewSelected = new Pigment(Color.Black, Color.White)
-            };
-        }
-
-        public ListBoxTemplate()
-            :this(null)
-        {
-        }
-
-        public int InitialSelected { get; set; }
-
-        public List<ItemData> Items { get; private set; }
-
-        public HorizontalAlignment HAlign { get; set; }
-
-        public override Size CalcSizeToContent()
-        {
-            int width, height;
-
-            height = Items.Count;
-            width = 1;
-
-            foreach (var itm in Items)
-            {
-                if (itm.Label.Length > width)
-                    width = itm.Label.Length;
-            }
-
-
-            if (HasFrame)
-            {
-                width += 2;
-                height += 2;
-            }
-
-            return new Size(width, height);
-        }
-    }
 
     public class ListItemEventArgs : EventArgs
     {
-        public ListItemEventArgs()
-        { }
-
-        public ListItemEventArgs(int index)
+        public ListItemEventArgs(int index, ItemData item)
         {
-            this.ItemIndex = index;
+            ItemIndex = index;
+            Item = item;
         }
 
         public int ItemIndex { get; set; }
+
+        public ItemData Item { get; set; }
     }
 
     public class ListBox : Control
@@ -153,11 +100,14 @@ namespace RLGui
         private List<ItemData> items;
 
         public event EventHandler<ListItemEventArgs> SelectedItemChanged;
-        public event EventHandler<ListItemEventArgs> MouseOverItemChanged;
+        public event EventHandler<ListItemEventArgs> MouseOverItem;
         
         public ListBox(Point position, ListBoxTemplate template)
             :base(position, template)
         {
+            if (template.Items == null || template.Items.Count == 0)
+                throw new ArgumentException("ListBoxTemplate.Items must contain one or more items");
+
             items = template.Items;
             HAlign = template.HAlign;
 
@@ -170,7 +120,7 @@ namespace RLGui
 
         public HorizontalAlignment HAlign { get; set; }
 
-        public int CurrentSelected { get; private set; }
+        public int CurrentSelected { get; protected set; }
 
         public int CurrentMouseOver { get; private set; }
 
@@ -187,7 +137,7 @@ namespace RLGui
             get { return items.Count; }
         }
 
-        protected int GetItemIndexAt(Point localPos)
+        protected virtual int GetItemIndexAt(Point localPos)
         {
             if (ViewRect.Contains(localPos))
             {
@@ -208,9 +158,15 @@ namespace RLGui
             if (CurrentMouseOver != index)
             {
                 CurrentMouseOver = index;
-                if (MouseOverItemChanged != null)
-                    MouseOverItemChanged(this, new ListItemEventArgs(index));
+
+                OnMouseOverItem();
             }
+        }
+
+        protected virtual void OnMouseOverItem()
+        {
+            if (MouseOverItem != null)
+                MouseOverItem(this, new ListItemEventArgs(CurrentMouseOver, items[CurrentMouseOver]));
         }
 
         protected internal override void OnMouseLeave()
@@ -234,11 +190,16 @@ namespace RLGui
                     {
                         CurrentSelected = index;
 
-                        if (SelectedItemChanged != null)
-                            SelectedItemChanged(this, new ListItemEventArgs(index));
+                        OnSelectedItemChanged();
                     }
                 }
             }
+        }
+
+        protected virtual void OnSelectedItemChanged()
+        {
+            if (SelectedItemChanged != null)
+                SelectedItemChanged(this, new ListItemEventArgs(CurrentSelected, items[CurrentSelected]));
         }
 
         public override string ToolTipText
