@@ -62,7 +62,7 @@
     <Compile Include="Toolkit\RectangleHelper.cs" />
     <Compile Include="GameConsole.cs" />
     <Compile Include="Toolkit\Interpolator.cs" />
-    <Compile Include="Toolkit\IterateCollection.cs" />
+    <Compile Include="Toolkit\ActiveSet.cs" />
     <Compile Include="KeyboardConverter.cs" />
     <Compile Include="KeyCode.cs" />
     <Compile Include="KeyCharEventData.cs" />

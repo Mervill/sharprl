@@ -34,14 +34,14 @@ namespace SharpRL.Toolkit
     /// </summary>
     public class TimerCollection
     {
-        IterateCollection<Timer> timers;
+        ActiveSet<Timer> timers;
 
         /// <summary>
         /// Creates a new TimerCollection object
         /// </summary>
         public TimerCollection()
         {
-            timers = new IterateCollection<Timer>();
+            timers = new ActiveSet<Timer>();
 
         }
 

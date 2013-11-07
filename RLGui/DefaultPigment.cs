@@ -44,10 +44,12 @@ namespace RLGui
             BorderMouseOver = from.BorderMouseOver;
             BorderNormal = from.BorderNormal;
             BorderSelected = from.BorderSelected;
+            BorderFocused = from.BorderFocused;
 
             ViewMouseOver = from.ViewMouseOver;
             ViewNormal = from.ViewNormal;
             ViewSelected = from.ViewSelected;
+            ViewFocused = from.ViewFocused;
         }
 
         /// <summary>
@@ -58,10 +60,12 @@ namespace RLGui
             BorderMouseOver = Pigment.WhiteBlack;
             BorderNormal = Pigment.WhiteBlack;
             BorderSelected = Pigment.WhiteBlack;
+            BorderFocused = Pigment.WhiteBlack;
 
             ViewMouseOver = Pigment.WhiteBlack;
             ViewNormal = Pigment.WhiteBlack;
             ViewSelected = Pigment.WhiteBlack;
+            ViewFocused = Pigment.WhiteBlack;
         }
 
         /// <summary>
@@ -80,6 +84,8 @@ namespace RLGui
         /// </summary>
         public Pigment BorderSelected { get; set; }
 
+        public Pigment BorderFocused { get; set; }
+
         /// <summary>
         /// The view pigment when the mouse is over the control
         /// </summary>
@@ -95,6 +101,8 @@ namespace RLGui
         /// mouse button click or push action
         /// </summary>
         public Pigment ViewSelected { get; set; }
+
+        public Pigment ViewFocused { get; set; }
     }
 
 

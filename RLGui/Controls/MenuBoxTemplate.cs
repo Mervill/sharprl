@@ -27,7 +27,7 @@ using SharpRL;
 
 namespace RLGui.Controls
 {
-    public class MenuBoxTemplate
+    public class MenuBoxTemplate : ListBoxTemplate
     {
 
     }

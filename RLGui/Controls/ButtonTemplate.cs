@@ -36,12 +36,8 @@ namespace RLGui.Controls
             HAlignment = HorizontalAlignment.Left;
             VAlignment = VerticalAlignment.Center;
 
-            Pigments = new ControlPigments()
-            {
-                BorderMouseOver = new Pigment(Color.Gold, Color.Black),
-                BorderSelected = new Pigment(Color.Black, Color.Gold),
-                ViewSelected = Pigment.BlackWhite
-            };
+            Pigments.BorderSelected = new Pigment(Color.LightBlue, Color.FromArgb(50, 50, 50));
+
         }
 
         /// <summary>

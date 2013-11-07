@@ -39,7 +39,7 @@ namespace RLGui
         Never,
 
         /// <summary>
-        /// The component will receive keyboard input only when it has keyboard focus
+        /// The component will receive keyboard input only when it has focus
         /// </summary>
         Focus,
 
@@ -61,14 +61,7 @@ namespace RLGui
     /// </remarks>
     public abstract class Component
     {
-        /// <summary>
-        /// This method will be used to transform mouse location to local space when sending mouse input messages.
-        /// Override to translate the console space positon to more useful coordinates for the component when
-        /// receiving mouse input messages.
-        /// </summary>
-        /// <param name="pos">The position in console space</param>
-        /// <returns>The position translated to local space</returns>
-        public abstract Point ConsoleToLocalSpace(Point pos);
+        private bool hasFocus;
 
         /// <summary>
         /// Constructs a component.
@@ -76,6 +69,7 @@ namespace RLGui
         protected Component()
         {
             KeyboardMode = KeyboardInputMode.Always;
+            CaptureTabKey = false;
         }
 
         internal UIManager manager;
@@ -101,6 +95,8 @@ namespace RLGui
         /// </summary>
         public bool IsHovering { get; private set; }
 
+        public int Depth { get; set; }
+
         /// <summary>
         /// Override to provide customized hit testing.  UIManager uses this to determine if mouse messages should be passed to
         /// this component.
@@ -110,57 +106,62 @@ namespace RLGui
         public abstract bool HitTest(Point pos);
 
         /// <summary>
+        /// This method will be used to transform mouse location to local space when sending mouse input messages.
+        /// Override to translate the console space positon to more useful coordinates for the component when
+        /// receiving mouse input messages.
+        /// </summary>
+        /// <param name="pos">The position in console space</param>
+        /// <returns>The position translated to local space</returns>
+        public abstract Point ConsoleToLocalSpace(Point pos);
+        
+
+
+        /// <summary>
         /// The current keyboard input mode, which determines when this component receives keyboard messages.
         /// </summary>
         public KeyboardInputMode KeyboardMode { get; protected set; }
 
-        private bool hasKeyboardFocus;
+        /// <summary>
+        /// True if this component wants to receive the Tab key down.  If false, the Tab key will
+        /// cause the focus to move to the next available control instead.
+        /// </summary>
+        public bool CaptureTabKey { get; set; }
+
+
 
         /// <summary>
-        /// True if this component has keyboard focus.  This only has meaning if the KeyboardMode is set to Focus.
+        /// True if this component has the current focus.
         /// </summary>
-        public bool HasKeyboardFocus
+        public bool HasFocus
         {
-            get { return hasKeyboardFocus; }
+            get { return hasFocus; }
             internal set
             {
-                if (KeyboardMode != KeyboardInputMode.Focus)
-                    return;
-
-                if (hasKeyboardFocus == value)
-                    return;
-
-                hasKeyboardFocus = value;
-
-                if (hasKeyboardFocus)
-                    OnFocusTaken();
-                else
-                    OnFocusReleased();
+                hasFocus = value;
             }
         }
 
         /// <summary>
-        /// Take the keyboard focus.  Other components will loose their focus if any has it.  This method is only
-        /// applicable if the KeyboardMode is set to Focus
+        /// Take the focus.  Other components will loose their focus if any has it.
         /// </summary>
-        public void TakeKeyboardFocus()
+        public void TakeFocus()
         {
-            if (hasKeyboardFocus || KeyboardMode != KeyboardInputMode.Focus)
+            if (hasFocus)
                 return;
 
-            manager.RequestKBTake(this);
+            manager.RequestTakeFocus(this);
         }
 
         /// <summary>
         /// Release the keyboard focus.  This method is only applicable if this component currently has focus
         /// and the KeyboardMode is set to Focus
         /// </summary>
-        public void ReleaseKeyboardFocus()
+        public void ReleaseFocus()
         {
-            if (!hasKeyboardFocus || KeyboardMode != KeyboardInputMode.Focus)
+            if (!hasFocus)
                 return;
 
-            manager.RequestKBRelease(this);
+            manager.RequestReleaseFocus(this);
         }
 
         public void Close()
@@ -170,9 +171,17 @@ namespace RLGui
             manager.RemoveComponent(this);
         }
 
+        public event EventHandler Opening;
+
+        protected internal virtual void OnOpening()
+        {
+            if (Opening != null)
+                Opening(this, null);
+        }
+
         public event EventHandler Closing;
 
-        protected virtual void OnClosing()
+        protected internal virtual void OnClosing()
         {
             if (Closing != null)
                 Closing(this, null);
@@ -268,9 +277,9 @@ namespace RLGui
             if (MouseButtonDown != null)
                 MouseButtonDown(this, new EventArgs<MouseMessageData>(mouseInfo));
 
-            if (mouseInfo.Button == MouseButton.Left && KeyboardMode == KeyboardInputMode.Focus)
+            if (mouseInfo.Button == MouseButton.Left)
             {
-                TakeKeyboardFocus();
+                TakeFocus();
             }
         }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using SharpRL;
+using SharpRL.Toolkit;
 using RLGui;
 using System.Drawing;
 using RLGui.Controls;
@@ -65,6 +66,8 @@ namespace RLGuiTest
                 new ItemData("Item 4", "The fourth item")
             };
 
+            btn.Clicked += btn_Clicked;
+
             //var lb = new ListBox(new Point(30, 15), new ListBoxTemplate(listItems)
             //{
             //    ToolTipText = "A very fine listbox example thingy"
@@ -104,6 +107,24 @@ namespace RLGuiTest
             });
 
             manager.AddComponents(panel, btn, cb, lb, eb, nb);
+        }
+
+        void btn_Clicked(object sender, EventArgs<MouseMessageData> e)
+        {
+            Rectangle rect = (sender as Control).Rect;
+
+            var menu = new MenuBox(new Point(rect.Center().X, rect.Bottom), new MenuBoxTemplate()
+                {
+                    Items = new List<ItemData>()
+                    {
+                        new ItemData("New Document"),
+                        new ItemData("Open Document"),
+                        new ItemData("Pick this"),
+                        new ItemData("Exit")
+                    }
+                });
+
+            manager.AddComponents(menu);
         }
 
         public void Run()

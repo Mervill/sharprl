@@ -33,14 +33,14 @@ namespace SharpRL.Toolkit
     /// </summary>
     public class InterpolatorCollection
     {
-        IterateCollection<Interpolator> interps;
+        ActiveSet<Interpolator> interps;
 
         /// <summary>
         /// Creates a new InterpolatorCollection object
         /// </summary>
         public InterpolatorCollection()
         {
-            interps = new IterateCollection<Interpolator>();
+            interps = new ActiveSet<Interpolator>();
 
         }
 

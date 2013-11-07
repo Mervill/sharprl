@@ -143,6 +143,31 @@ namespace SharpRL
     /// </summary>
     public abstract class Surface
     {
+        #region CTORs
+
+        /// <summary>
+        /// Create a surface of the given size
+        /// </summary>
+        /// <param name="columns"></param>
+        /// <param name="rows"></param>
+        protected Surface(int columns, int rows)
+        {
+            if (columns <= 0 || rows <= 0)
+                throw new ArgumentException("Width and height must be greater than 0");
+
+            Size = new Size(columns, rows);
+
+            DefaultBackground = Color.Black;
+            DefaultForeground = Color.White;
+            DefaultChar = ' ';
+        }
+
+        #endregion
+
+        #region public
+
+        #region Properties
+
         /// <summary>
         /// Get the size of the surface in characters (number of columns and rows)
         /// </summary>
@@ -181,23 +206,318 @@ namespace SharpRL
         /// Get or set the default character.
         /// </summary>
         public Char DefaultChar { get; set; }
+        #endregion
+
+        #region Static Methods
 
         /// <summary>
-        /// Create an offscreen surface of the given size
+        /// Copies the entire source surface to the destination, ignoring all source cells having
+        /// the default character and colors of the source surface.  Areas wich would fall outside the destination
+        /// surface are clipped.
         /// </summary>
-        /// <param name="columns"></param>
-        /// <param name="rows"></param>
-        protected Surface(int columns, int rows)
+        /// <param name="src"></param>
+        /// <param name="dest"></param>
+        /// <param name="destX"></param>
+        /// <param name="destY"></param>
+        public static void BlitWithMask(Surface src, Surface dest, int destX, int destY)
         {
-            if (columns <= 0 || rows <= 0)
-                throw new ArgumentException("Width and height must be greater than 0");
+            if (src == null)
+                throw new ArgumentNullException("src");
+            if (dest == null)
+                throw new ArgumentNullException("dest");
 
-            Size = new Size(columns, rows);
-            
-            DefaultBackground = Color.Black;
-            DefaultForeground = Color.White;
-            DefaultChar = ' ';
+            BlitWithMask(src, new Rectangle(0, 0, src.Width, src.Height), dest, destX, destY);
         }
+
+        /// <summary>
+        /// Copies a portion of the source surface to the destination, ignoring all source cells having
+        /// the default character and colors of the source surface.  Areas wich would fall outside the destination
+        /// surface are clipped.
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="dest"></param>
+        /// <param name="srcRect"></param>
+        /// <param name="destX"></param>
+        /// <param name="destY"></param>
+        public static void BlitWithMask(Surface src, Rectangle srcRect, Surface dest, int destX, int destY)
+        {
+            if (src == null)
+                throw new ArgumentNullException("src");
+            if (dest == null)
+                throw new ArgumentNullException("dest");
+
+            BlitWithMask(src, srcRect, dest, destX, destY, src.DefaultChar, src.DefaultForeground, src.DefaultBackground);
+        }
+
+        /// <summary>
+        /// Copies a portion of the source surface to the destination, ignoring all cells having
+        /// the mask values.  Areas wich would fall outside the destination
+        /// surface are clipped.
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="dest"></param>
+        /// <param name="srcRect"></param>
+        /// <param name="destX"></param>
+        /// <param name="destY"></param>
+        /// <param name="maskChar"></param>
+        /// <param name="maskFG"></param>
+        /// <param name="maskBG"></param>
+        public static void BlitWithMask(Surface src, Rectangle srcRect, Surface dest, int destX, int destY,
+            char maskChar, Color maskFG, Color maskBG)
+        {
+            if (src == null)
+                throw new ArgumentNullException("src");
+            if (dest == null)
+                throw new ArgumentNullException("dest");
+
+            Rectangle blitRect = new Rectangle(destX, destY, srcRect.Width, srcRect.Height);
+            int deltax = srcRect.Left - blitRect.Left;
+            int deltay = srcRect.Top - blitRect.Top;
+
+            blitRect = Rectangle.Intersect(blitRect, new Rectangle(0, 0, dest.Width, dest.Height));
+
+            //bool dstIsRoot = dest is RootSurface;
+            //RootSurface dstAsRoot = dest as RootSurface;
+            Cell srcCell;
+
+            for (int y = blitRect.Top; y < blitRect.Bottom; y++)
+            {
+                for (int x = blitRect.Left; x < blitRect.Right; x++)
+                {
+                    int sx = deltax + x;
+                    int sy = deltay + y;
+
+                    srcCell = src.GetCellUnchecked(sx, sy);
+
+                    if (srcCell.ch != maskChar)
+                    {
+                        dest.SetCell(x, y, srcCell.ch, srcCell.fgColor, srcCell.bgColor);
+                    }
+
+                    //if (src.cells[sx + sy * src.Width].ch != maskChar)
+                    //{
+                    //    dest.cells[x + y * dest.Width].bgColor = src.cells[sx + sy * src.Width].bgColor;
+                    //    dest.cells[x + y * dest.Width].fgColor = src.cells[sx + sy * src.Width].fgColor;
+                    //    dest.cells[x + y * dest.Width].ch = src.cells[sx + sy * src.Width].ch;
+
+                    //    if (dstIsRoot)
+                    //    {
+                    //        dstAsRoot.dirty[x + y * dest.Width] = 1;
+                    //    }
+                    //}
+                }
+            }
+        }
+
+        /// <summary>
+        /// Copies a portion of the source surface to the destination surface.
+        /// Areas wich would fall outside the destination surface are clipped.
+        /// </summary>
+        /// <param name="src">The source of the blit, normally an off-screen surface (but can be the root surface)</param>
+        /// <param name="dest">The destination surface, often the root surface (but can be an off-screen surface)</param>
+        /// <param name="srcRect">The area of the source surface that will be copied</param>
+        /// <param name="destX">The destination X coordinate (in character coordinates)</param>
+        /// <param name="destY">The destination Y coordinate (in character coordinates)</param>
+        public static void Blit(Surface src, Rectangle srcRect, Surface dest, int destX, int destY)
+        {
+            if (src == null)
+                throw new ArgumentNullException("src");
+            if (dest == null)
+                throw new ArgumentNullException("dest");
+
+            Cell srcCell;
+
+            Rectangle blitRect = new Rectangle(destX, destY, srcRect.Width, srcRect.Height);
+            int deltax = srcRect.Left - blitRect.Left;
+            int deltay = srcRect.Top - blitRect.Top;
+
+            blitRect = Rectangle.Intersect(blitRect, new Rectangle(0, 0, dest.Width, dest.Height));
+
+            //bool dstIsRoot = dest is RootSurface;
+            //RootSurface dstAsRoot = dest as RootSurface;
+
+            for (int y = blitRect.Top; y < blitRect.Bottom; y++)
+            {
+                for (int x = blitRect.Left; x < blitRect.Right; x++)
+                {
+                    int sx = deltax + x;
+                    int sy = deltay + y;
+
+                    srcCell = src.GetCellUnchecked(sx, sy);
+
+                    //int di = x + y * dest.Width;
+                    //int si = sx + sy * src.Width;
+
+                    //dest.cells[di] = src.cells[si];
+                    dest.SetCellUnchecked(x, y, srcCell.ch, srcCell.fgColor, srcCell.bgColor);
+
+                    //if (dstIsRoot)
+                    //{
+                    //    dstAsRoot.dirty[x + y * dest.Width] = 1;
+                    //}
+                }
+            }
+        }
+
+        /// <summary>
+        /// Copies the entire source surface to the destination surface using simulated alpha transparency.
+        /// Areas which fall outside the destination surface are clipped.
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="dest"></param>
+        /// <param name="destX"></param>
+        /// <param name="destY"></param>
+        /// <param name="alpha"></param>
+        public static void BlitAlpha(Surface src, Surface dest, int destX, int destY, float alpha)
+        {
+            if (src == null)
+                throw new ArgumentNullException("src");
+            if (dest == null)
+                throw new ArgumentNullException("dest");
+
+            BlitAlpha(src, src.Rect, dest, destX, destY, alpha);
+        }
+
+        /// <summary>
+        /// Copies a portion of the source surface to the destination surface using simulated alpha transparency.
+        /// Areas wich would fall outside the destination surface are clipped.
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="dest"></param>
+        /// <param name="srcRect"></param>
+        /// <param name="destX"></param>
+        /// <param name="destY"></param>
+        /// <param name="alpha">Alpha from 0 to 1 inclusive, where 0 is fully transparent and 1 is fully opaque</param>
+        public static void BlitAlpha(Surface src, Rectangle srcRect, Surface dest, int destX, int destY, float alpha)
+        {
+            if (src == null)
+                throw new ArgumentNullException("src");
+            if (dest == null)
+                throw new ArgumentNullException("dest");
+
+            BlitAlpha(src, srcRect, dest, destX, destY, AlphaMode.BasicAlpha(alpha));
+
+            //Cell srcCell, dstCell;
+            //Color backCol, foreCol;
+            //char ch;
+
+            //Rectangle blitRect = new Rectangle(destX, destY, srcRect.Width, srcRect.Height);
+            //int deltax = srcRect.Left - blitRect.Left;
+            //int deltay = srcRect.Top - blitRect.Top;
+
+            //blitRect = Rectangle.Intersect(blitRect, new Rectangle(0, 0, dest.Width, dest.Height));
+
+            //for (int y = blitRect.Top; y < blitRect.Bottom; y++)
+            //{
+            //    for (int x = blitRect.Left; x < blitRect.Right; x++)
+            //    {
+            //        int sx = deltax + x;
+            //        int sy = deltay + y;
+
+            //        srcCell = src.GetCellUnchecked(sx, sy);
+            //        dstCell = dest.GetCellUnchecked(x, y);
+
+            //        backCol = ColorHelper.Lerp(dstCell.bgColor, srcCell.bgColor, alpha);
+
+            //        if (srcCell.ch == ' ')
+            //        {
+            //            foreCol = ColorHelper.Lerp(dstCell.fgColor, srcCell.bgColor, alpha);
+            //            ch = dstCell.ch;
+            //        }
+            //        else
+            //        {
+            //            foreCol = srcCell.fgColor;
+            //            //foreCol = ColorHelper.Lerp(dstCell.fgColor, srcCell.bgColor, alpha);
+            //            ch = srcCell.ch;
+            //        }
+
+            //        dest.SetCellUnchecked(x, y, ch, foreCol, backCol);
+            //    }
+            //}
+        }
+
+        /// <summary>
+        /// Copies a portion of the source surface to the destination surface using simulated alpha transparency.
+        /// Areas wich would fall outside the destination surface are clipped.
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="srcRect"></param>
+        /// <param name="dest"></param>
+        /// <param name="destX"></param>
+        /// <param name="destY"></param>
+        /// <param name="mode">The alpha blending values to use</param>
+        public static void BlitAlpha(Surface src, Rectangle srcRect, Surface dest, int destX, int destY, AlphaMode mode)
+        {
+            if (src == null)
+                throw new ArgumentNullException("src");
+            if (dest == null)
+                throw new ArgumentNullException("dest");
+
+            Cell srcCell, dstCell;
+            Color backCol, foreCol;
+            char ch;
+
+            Rectangle blitRect = new Rectangle(destX, destY, srcRect.Width, srcRect.Height);
+            int deltax = srcRect.Left - blitRect.Left;
+            int deltay = srcRect.Top - blitRect.Top;
+
+            blitRect = Rectangle.Intersect(blitRect, new Rectangle(0, 0, dest.Width, dest.Height));
+
+            for (int y = blitRect.Top; y < blitRect.Bottom; y++)
+            {
+                for (int x = blitRect.Left; x < blitRect.Right; x++)
+                {
+                    int sx = deltax + x;
+                    int sy = deltay + y;
+
+                    srcCell = src.GetCellUnchecked(sx, sy);
+                    dstCell = dest.GetCellUnchecked(x, y);
+
+                    if (mode.BGColorAlpha == 0f)
+                        backCol = dstCell.bgColor;
+                    else if (mode.BGColorAlpha == 1f)
+                        backCol = srcCell.bgColor;
+                    else
+                        backCol = ColorHelper.Lerp(dstCell.bgColor, srcCell.bgColor, mode.BGColorAlpha);
+
+                    if (srcCell.ch == ' ' && mode.CharBleed != 1)
+                    {
+                        foreCol = ColorHelper.Lerp(dstCell.fgColor, srcCell.bgColor, mode.CharBleed);
+                        ch = dstCell.ch;
+                    }
+                    else
+                    {
+                        //foreCol = srcCell.fgColor;
+                        foreCol = ColorHelper.Lerp(dstCell.fgColor, srcCell.fgColor, mode.FGColorAlpha);
+                        ch = srcCell.ch;
+                    }
+
+                    dest.SetCellUnchecked(x, y, ch, foreCol, backCol);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Copies the entire source surface to the destination surface.
+        /// Areas wich would fall outside the destination surface are clipped.
+        /// </summary>
+        /// <param name="src">The source of the blit, normally an off-screen surface (but can be the root surface)</param>
+        /// <param name="dest">The destination surface, often the root surface (but can be an off-screen surface)</param>
+        /// <param name="destX">The destination X coordinate (in character coordinates)</param>
+        /// <param name="destY">The destination Y coordinate (in character coordinates)</param>
+        public static void Blit(Surface src, Surface dest, int destX, int destY)
+        {
+            if (src == null)
+                throw new ArgumentNullException("src");
+            if (dest == null)
+                throw new ArgumentNullException("dest");
+
+            Blit(src, new Rectangle(0, 0, src.Width, src.Height), dest, destX, destY);
+        }
+
+        #endregion
+
+        #region Get Cell Methods
 
         /// <summary>
         /// Get the foreground color at the specified coordinate.  An exception will be thrown
@@ -243,6 +563,8 @@ namespace SharpRL
 
             return GetCellUnchecked(cx, cy).ch;
         }
+
+        #endregion
 
         #region Set Cell Methods
 
@@ -735,313 +1057,6 @@ namespace SharpRL
 
         #endregion
 
-        #region Static Methods
-
-        /// <summary>
-        /// Copies the entire source surface to the destination, ignoring all source cells having
-        /// the default character and colors of the source surface.  Areas wich would fall outside the destination
-        /// surface are clipped.
-        /// </summary>
-        /// <param name="src"></param>
-        /// <param name="dest"></param>
-        /// <param name="destX"></param>
-        /// <param name="destY"></param>
-        public static void BlitWithMask(Surface src, Surface dest, int destX, int destY)
-        {
-            if (src == null)
-                throw new ArgumentNullException("src");
-            if (dest == null)
-                throw new ArgumentNullException("dest");
-
-            BlitWithMask(src, new Rectangle(0, 0, src.Width, src.Height), dest, destX, destY);
-        }
-
-        /// <summary>
-        /// Copies a portion of the source surface to the destination, ignoring all source cells having
-        /// the default character and colors of the source surface.  Areas wich would fall outside the destination
-        /// surface are clipped.
-        /// </summary>
-        /// <param name="src"></param>
-        /// <param name="dest"></param>
-        /// <param name="srcRect"></param>
-        /// <param name="destX"></param>
-        /// <param name="destY"></param>
-        public static void BlitWithMask(Surface src, Rectangle srcRect, Surface dest, int destX, int destY)
-        {
-            if (src == null)
-                throw new ArgumentNullException("src");
-            if (dest == null)
-                throw new ArgumentNullException("dest");
-
-            BlitWithMask(src, srcRect, dest, destX, destY, src.DefaultChar, src.DefaultForeground, src.DefaultBackground);
-        }
-
-        /// <summary>
-        /// Copies a portion of the source surface to the destination, ignoring all cells having
-        /// the mask values.  Areas wich would fall outside the destination
-        /// surface are clipped.
-        /// </summary>
-        /// <param name="src"></param>
-        /// <param name="dest"></param>
-        /// <param name="srcRect"></param>
-        /// <param name="destX"></param>
-        /// <param name="destY"></param>
-        /// <param name="maskChar"></param>
-        /// <param name="maskFG"></param>
-        /// <param name="maskBG"></param>
-        public static void BlitWithMask(Surface src, Rectangle srcRect, Surface dest, int destX, int destY,
-            char maskChar, Color maskFG, Color maskBG)
-        {
-            if (src == null)
-                throw new ArgumentNullException("src");
-            if (dest == null)
-                throw new ArgumentNullException("dest");
-
-            Rectangle blitRect = new Rectangle(destX, destY, srcRect.Width, srcRect.Height);
-            int deltax = srcRect.Left - blitRect.Left;
-            int deltay = srcRect.Top - blitRect.Top;
-
-            blitRect = Rectangle.Intersect(blitRect, new Rectangle(0, 0, dest.Width, dest.Height));
-
-            //bool dstIsRoot = dest is RootSurface;
-            //RootSurface dstAsRoot = dest as RootSurface;
-            Cell srcCell;
-
-            for (int y = blitRect.Top; y < blitRect.Bottom; y++)
-            {
-                for (int x = blitRect.Left; x < blitRect.Right; x++)
-                {
-                    int sx = deltax + x;
-                    int sy = deltay + y;
-
-                    srcCell = src.GetCellUnchecked(sx, sy);
-
-                    if (srcCell.ch != maskChar)
-                    {
-                        dest.SetCell(x, y, srcCell.ch, srcCell.fgColor, srcCell.bgColor);
-                    }
-
-                    //if (src.cells[sx + sy * src.Width].ch != maskChar)
-                    //{
-                    //    dest.cells[x + y * dest.Width].bgColor = src.cells[sx + sy * src.Width].bgColor;
-                    //    dest.cells[x + y * dest.Width].fgColor = src.cells[sx + sy * src.Width].fgColor;
-                    //    dest.cells[x + y * dest.Width].ch = src.cells[sx + sy * src.Width].ch;
-
-                    //    if (dstIsRoot)
-                    //    {
-                    //        dstAsRoot.dirty[x + y * dest.Width] = 1;
-                    //    }
-                    //}
-                }
-            }
-        }
-
-        /// <summary>
-        /// Copies a portion of the source surface to the destination surface.
-        /// Areas wich would fall outside the destination surface are clipped.
-        /// </summary>
-        /// <param name="src">The source of the blit, normally an off-screen surface (but can be the root surface)</param>
-        /// <param name="dest">The destination surface, often the root surface (but can be an off-screen surface)</param>
-        /// <param name="srcRect">The area of the source surface that will be copied</param>
-        /// <param name="destX">The destination X coordinate (in character coordinates)</param>
-        /// <param name="destY">The destination Y coordinate (in character coordinates)</param>
-        public static void Blit(Surface src, Rectangle srcRect, Surface dest, int destX, int destY)
-        {
-            if (src == null)
-                throw new ArgumentNullException("src");
-            if (dest == null)
-                throw new ArgumentNullException("dest");
-
-            Cell srcCell;
-
-            Rectangle blitRect = new Rectangle(destX, destY, srcRect.Width, srcRect.Height);
-            int deltax = srcRect.Left - blitRect.Left;
-            int deltay = srcRect.Top - blitRect.Top;
-
-            blitRect = Rectangle.Intersect(blitRect, new Rectangle(0, 0, dest.Width, dest.Height));
-
-            //bool dstIsRoot = dest is RootSurface;
-            //RootSurface dstAsRoot = dest as RootSurface;
-
-            for (int y = blitRect.Top; y < blitRect.Bottom; y++)
-            {
-                for (int x = blitRect.Left; x < blitRect.Right; x++)
-                {
-                    int sx = deltax + x;
-                    int sy = deltay + y;
-
-                    srcCell = src.GetCellUnchecked(sx, sy);
-
-                    //int di = x + y * dest.Width;
-                    //int si = sx + sy * src.Width;
-
-                    //dest.cells[di] = src.cells[si];
-                    dest.SetCellUnchecked(x, y, srcCell.ch, srcCell.fgColor, srcCell.bgColor);
-
-                    //if (dstIsRoot)
-                    //{
-                    //    dstAsRoot.dirty[x + y * dest.Width] = 1;
-                    //}
-                }
-            }
-        }
-
-        /// <summary>
-        /// Copies the entire source surface to the destination surface using simulated alpha transparency.
-        /// Areas which fall outside the destination surface are clipped.
-        /// </summary>
-        /// <param name="src"></param>
-        /// <param name="dest"></param>
-        /// <param name="destX"></param>
-        /// <param name="destY"></param>
-        /// <param name="alpha"></param>
-        public static void BlitAlpha(Surface src, Surface dest, int destX, int destY, float alpha)
-        {
-            if (src == null)
-                throw new ArgumentNullException("src");
-            if (dest == null)
-                throw new ArgumentNullException("dest");
-
-            BlitAlpha(src, src.Rect, dest, destX, destY, alpha);
-        }
-
-        /// <summary>
-        /// Copies a portion of the source surface to the destination surface using simulated alpha transparency.
-        /// Areas wich would fall outside the destination surface are clipped.
-        /// </summary>
-        /// <param name="src"></param>
-        /// <param name="dest"></param>
-        /// <param name="srcRect"></param>
-        /// <param name="destX"></param>
-        /// <param name="destY"></param>
-        /// <param name="alpha">Alpha from 0 to 1 inclusive, where 0 is fully transparent and 1 is fully opaque</param>
-        public static void BlitAlpha(Surface src, Rectangle srcRect, Surface dest, int destX, int destY, float alpha)
-        {
-            if (src == null)
-                throw new ArgumentNullException("src");
-            if (dest == null)
-                throw new ArgumentNullException("dest");
-
-            BlitAlpha(src, srcRect, dest, destX, destY, AlphaMode.BasicAlpha(alpha));
-
-            //Cell srcCell, dstCell;
-            //Color backCol, foreCol;
-            //char ch;
-
-            //Rectangle blitRect = new Rectangle(destX, destY, srcRect.Width, srcRect.Height);
-            //int deltax = srcRect.Left - blitRect.Left;
-            //int deltay = srcRect.Top - blitRect.Top;
-
-            //blitRect = Rectangle.Intersect(blitRect, new Rectangle(0, 0, dest.Width, dest.Height));
-
-            //for (int y = blitRect.Top; y < blitRect.Bottom; y++)
-            //{
-            //    for (int x = blitRect.Left; x < blitRect.Right; x++)
-            //    {
-            //        int sx = deltax + x;
-            //        int sy = deltay + y;
-
-            //        srcCell = src.GetCellUnchecked(sx, sy);
-            //        dstCell = dest.GetCellUnchecked(x, y);
-
-            //        backCol = ColorHelper.Lerp(dstCell.bgColor, srcCell.bgColor, alpha);
-
-            //        if (srcCell.ch == ' ')
-            //        {
-            //            foreCol = ColorHelper.Lerp(dstCell.fgColor, srcCell.bgColor, alpha);
-            //            ch = dstCell.ch;
-            //        }
-            //        else
-            //        {
-            //            foreCol = srcCell.fgColor;
-            //            //foreCol = ColorHelper.Lerp(dstCell.fgColor, srcCell.bgColor, alpha);
-            //            ch = srcCell.ch;
-            //        }
-
-            //        dest.SetCellUnchecked(x, y, ch, foreCol, backCol);
-            //    }
-            //}
-        }
-
-        /// <summary>
-        /// Copies a portion of the source surface to the destination surface using simulated alpha transparency.
-        /// Areas wich would fall outside the destination surface are clipped.
-        /// </summary>
-        /// <param name="src"></param>
-        /// <param name="srcRect"></param>
-        /// <param name="dest"></param>
-        /// <param name="destX"></param>
-        /// <param name="destY"></param>
-        /// <param name="mode">The alpha blending values to use</param>
-        public static void BlitAlpha(Surface src, Rectangle srcRect, Surface dest, int destX, int destY, AlphaMode mode)
-        {
-            if (src == null)
-                throw new ArgumentNullException("src");
-            if (dest == null)
-                throw new ArgumentNullException("dest");
-
-            Cell srcCell, dstCell;
-            Color backCol, foreCol;
-            char ch;
-
-            Rectangle blitRect = new Rectangle(destX, destY, srcRect.Width, srcRect.Height);
-            int deltax = srcRect.Left - blitRect.Left;
-            int deltay = srcRect.Top - blitRect.Top;
-
-            blitRect = Rectangle.Intersect(blitRect, new Rectangle(0, 0, dest.Width, dest.Height));
-
-            for (int y = blitRect.Top; y < blitRect.Bottom; y++)
-            {
-                for (int x = blitRect.Left; x < blitRect.Right; x++)
-                {
-                    int sx = deltax + x;
-                    int sy = deltay + y;
-
-                    srcCell = src.GetCellUnchecked(sx, sy);
-                    dstCell = dest.GetCellUnchecked(x, y);
-
-                    if (mode.BGColorAlpha == 0f)
-                        backCol = dstCell.bgColor;
-                    else if (mode.BGColorAlpha == 1f)
-                        backCol = srcCell.bgColor;
-                    else
-                        backCol = ColorHelper.Lerp(dstCell.bgColor, srcCell.bgColor, mode.BGColorAlpha);
-
-                    if (srcCell.ch == ' ' && mode.CharBleed != 1)
-                    {
-                        foreCol = ColorHelper.Lerp(dstCell.fgColor, srcCell.bgColor, mode.CharBleed);
-                        ch = dstCell.ch;
-                    }
-                    else
-                    {
-                        //foreCol = srcCell.fgColor;
-                        foreCol = ColorHelper.Lerp(dstCell.fgColor, srcCell.fgColor, mode.FGColorAlpha);
-                        ch = srcCell.ch;
-                    }
-
-                    dest.SetCellUnchecked(x, y, ch, foreCol, backCol);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Copies the entire source surface to the destination surface.
-        /// Areas wich would fall outside the destination surface are clipped.
-        /// </summary>
-        /// <param name="src">The source of the blit, normally an off-screen surface (but can be the root surface)</param>
-        /// <param name="dest">The destination surface, often the root surface (but can be an off-screen surface)</param>
-        /// <param name="destX">The destination X coordinate (in character coordinates)</param>
-        /// <param name="destY">The destination Y coordinate (in character coordinates)</param>
-        public static void Blit(Surface src, Surface dest, int destX, int destY)
-        {
-            if (src == null)
-                throw new ArgumentNullException("src");
-            if (dest == null)
-                throw new ArgumentNullException("dest");
-
-            Blit(src, new Rectangle(0, 0, src.Width, src.Height), dest, destX, destY);
-        }
-
         #endregion
 
         #region Private
@@ -1210,6 +1225,7 @@ namespace SharpRL
 
             return stringList.ToArray();
         }
+
         #endregion
     }
 

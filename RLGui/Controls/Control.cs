@@ -143,6 +143,9 @@ namespace RLGui.Controls
              
             if (IsMouseOver)
                 return Pigments.ViewMouseOver;
+
+            if (HasFocus)
+                return Pigments.ViewFocused;
             
             return Pigments.ViewNormal;
         }
@@ -159,6 +162,9 @@ namespace RLGui.Controls
 
             if (IsMouseOver)
                 return Pigments.BorderMouseOver;
+
+            if (HasFocus)
+                return Pigments.BorderFocused;
 
             return Pigments.BorderNormal;
         }

@@ -34,7 +34,7 @@ namespace SharpRL.Toolkit
     /// need to be unique.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class IterateCollection<T>
+    public class ActiveSet<T>
     {
         HashSet<T> items = new HashSet<T>();
 
@@ -129,5 +129,6 @@ namespace SharpRL.Toolkit
                 }
             }
         }
+
     }
 }

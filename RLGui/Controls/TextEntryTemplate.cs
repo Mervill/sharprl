@@ -37,10 +37,9 @@ namespace RLGui.Controls
             InitialText = "";
             CursorChar = (char)SpecialChar.Block3;
 
-            Pigments = new ControlPigments()
-            {
-                ViewSelected = Pigment.BlackWhite
-            };
+            //Pigments.ViewSelected = Pigment.BlackWhite;
+            //Pigments.BorderSelected = Pigment.WhiteBlack;
+
         }
 
         public bool ReplaceOnFirstKey { get; set; }

@@ -40,11 +40,9 @@ namespace RLGui.Controls
 
             HAlign = HorizontalAlignment.Left;
 
-            Pigments = new ControlPigments()
-            {
-                ViewMouseOver = new Pigment(Color.Gold, Color.Black),
-                ViewSelected = Pigment.BlackWhite
-            };
+            Pigments.ViewMouseOver = new Pigment(Color.Gold, Color.Black);
+            Pigments.ViewSelected = new Pigment(Color.Black, Color.White);
+
         }
 
         public ListBoxTemplate()
@@ -54,7 +52,7 @@ namespace RLGui.Controls
 
         public int InitialSelected { get; set; }
 
-        public List<ItemData> Items { get; private set; }
+        public List<ItemData> Items { get; set; }
 
         public HorizontalAlignment HAlign { get; set; }
 

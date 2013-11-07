@@ -268,7 +268,7 @@ namespace RLGui.Controls
                 ViewRect.Width, HAlignment,
                 pigment.Foreground,pigment.Background);
 
-            if (cursorOn && HasKeyboardFocus)
+            if (cursorOn && HasFocus)
             {
                 //Pigment curPigment = pigment.Invert();
 
@@ -312,13 +312,13 @@ namespace RLGui.Controls
             }
             else if (keyInfo.Key == KeyCode.Enter)
             {
-                ReleaseKeyboardFocus();     // This will lead to OnFocusReleased being called
+                ReleaseFocus();     // This will lead to OnFocusReleased being called
 
             }
             else if (keyInfo.Key == KeyCode.Escape)
             {
                 CurrentText = ValidatedText;
-                ReleaseKeyboardFocus();
+                ReleaseFocus();
             }
         }
 

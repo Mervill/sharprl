@@ -46,6 +46,13 @@ namespace RLGui.Controls
             KeyboardMode = KeyboardInputMode.Focus;
 
             ToolTipText = null;
+
+            Pigments = new ControlPigments()
+            {
+                BorderFocused = new Pigment(Color.LightBlue, Color.Black),
+                BorderMouseOver = new Pigment(Color.LightBlue, Color.Black)
+
+            };
         }
 
         /// <summary>

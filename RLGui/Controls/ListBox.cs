@@ -99,7 +99,7 @@ namespace RLGui.Controls
     {
         private List<ItemData> items;
 
-        public event EventHandler<ListItemEventArgs> SelectedItemChanged;
+        public event EventHandler<ListItemEventArgs> ItemSelected;
         public event EventHandler<ListItemEventArgs> MouseOverItem;
         
         public ListBox(Point position, ListBoxTemplate template)
@@ -190,16 +190,16 @@ namespace RLGui.Controls
                     {
                         CurrentSelected = index;
 
-                        OnSelectedItemChanged();
+                        OnItemSelected();
                     }
                 }
             }
         }
 
-        protected virtual void OnSelectedItemChanged()
+        protected virtual void OnItemSelected()
         {
-            if (SelectedItemChanged != null)
-                SelectedItemChanged(this, new ListItemEventArgs(CurrentSelected, items[CurrentSelected]));
+            if (ItemSelected != null)
+                ItemSelected(this, new ListItemEventArgs(CurrentSelected, items[CurrentSelected]));
         }
 
         public override string ToolTipText

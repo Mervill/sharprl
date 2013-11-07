@@ -26,6 +26,7 @@ using System.Text;
 using SharpRL;
 using System.Drawing;
 using RLGui.Controls;
+using SharpRL.Toolkit;
 
 namespace RLGui
 {
@@ -35,14 +36,16 @@ namespace RLGui
     public class UIManager
     {
         List<Component> components = new List<Component>();
+        List<Component> sortedComps = new List<Component>();
 
-        internal GameConsole Console { get; private set; }
+        Component lastMouseOver;
+        float hoverTime;
+        bool isHovering;
+        MouseEventData lastMouseMoveData;
+        Component currentFocus;
+        bool ToolTipShowing = false;
+        
 
-       
-        /// <summary>
-        /// The number of seconds of mouse cursor rest time after which a MouseHover message is sent
-        /// </summary>
-        public float HoverRestTime { get; set; }
 
         /// <summary>
         /// Constructs a UIManager object given the GameConsole
@@ -69,10 +72,64 @@ namespace RLGui
             ToolTip.Manager = this;
         }
 
+        /// <summary>
+        /// The number of seconds of mouse cursor rest time after which a MouseHover message is sent
+        /// </summary>
+        public float HoverRestTime { get; set; }
+        
+
+
+        public ToolTip ToolTip { get; private set; }
+
+        internal GameConsole Console { get; private set; }
+
+
+
         private void ComponentAdded(Component comp)
         {
             comp.manager = this;
+            comp.OnOpening();
         }
+
+        private bool isIterating = false;
+        enum Command
+        {
+            Add,
+            Remove
+        }
+
+        class CommandData
+        {
+            public Command command;
+            public Component comp;
+
+            public void DoCommand(UIManager manager)
+            {
+                switch (command)
+                {
+                    case Command.Add:
+                        manager.components.Add(comp);
+                        manager.sortedComps.Add(comp);
+                        manager.ComponentAdded(comp);
+                        break;
+
+                    case Command.Remove:
+                        manager.components.Remove(comp);
+                        manager.sortedComps.Remove(comp);
+                        comp.manager = null;
+
+                        if (manager.lastMouseOver == comp)
+                            manager.lastMouseOver = null;
+
+                        if (manager.currentFocus == comp)
+                            manager.currentFocus = null;
+                        break;
+                }
+            }
+        }
+
+        Queue<CommandData> cmdQueue = new Queue<CommandData>();
+
 
         /// <summary>
         /// Adds one or more components to the top of the component collection.
@@ -85,119 +142,18 @@ namespace RLGui
             {
                 if (!components.Contains(component))
                 {
-                    components.Add(component);
-                    ComponentAdded(component);
+                    var cmd = new CommandData() { comp = component, command = Command.Add };
+
+                    if (isIterating)
+                    {
+                        cmdQueue.Enqueue(cmd);
+                    }
+                    else
+                    {
+                        cmd.DoCommand(this);
+                    }
                 }
             }
-        }
-
-        /// <summary>
-        /// Adds the specified components above the given component
-        /// </summary>
-        /// <param name="insertAbove"></param>
-        /// <param name="comps"></param>
-        public void InsertComponentsAbove(Component insertAbove, params Component[] comps)
-        {
-            if (!components.Contains(insertAbove))
-                throw new ArgumentException("The component insertAbove does not exist in the collection");
-
-            int index = components.IndexOf(insertAbove) + 1;
-
-            foreach (var component in comps)
-            {
-                if (!components.Contains(component))
-                {
-                    components.Insert(index, component);
-                    index++;
-                    ComponentAdded(component);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Adds the specified components below the given component
-        /// </summary>
-        /// <param name="insertBelow"></param>
-        /// <param name="comps"></param>
-        public void InsertComponentsBelow(Component insertBelow, params Component[] comps)
-        {
-            if (!components.Contains(insertBelow))
-                throw new ArgumentException("The component insertBelow does not exist in the collection");
-
-            int index = components.IndexOf(insertBelow);
-
-            foreach (var component in comps)
-            {
-                if (!components.Contains(component))
-                {
-                    components.Insert(index, component);
-                    index++;
-                    ComponentAdded(component);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Moves the specified component above the other one
-        /// </summary>
-        /// <param name="componentToMove"></param>
-        /// <param name="aboveComponent"></param>
-        public void SendComponentAbove(Component componentToMove, Component aboveComponent)
-        {
-            if (!components.Contains(componentToMove))
-                throw new ArgumentException("The componentToMove does not exist in the collection");
-            if (!components.Contains(aboveComponent))
-                throw new ArgumentException("The aboveComponent does not exist in the collection");
-
-            components.Remove(componentToMove);
-
-            int index = components.IndexOf(aboveComponent) + 1;
-            components.Insert(index, componentToMove);
-        }
-
-        /// <summary>
-        /// Moves the specified component below the other one
-        /// </summary>
-        /// <param name="componentToMove"></param>
-        /// <param name="belowComponent"></param>
-        public void SendComponentBelow(Component componentToMove, Component belowComponent)
-        {
-            if (!components.Contains(componentToMove))
-                throw new ArgumentException("The componentToMove does not exist in the collection");
-            if (!components.Contains(belowComponent))
-                throw new ArgumentException("The belowComponent does not exist in the collection");
-
-            components.Remove(componentToMove);
-
-            int index = components.IndexOf(belowComponent);
-            components.Insert(index, componentToMove);
-        }
-
-        /// <summary>
-        /// Moves the specified component to the top
-        /// </summary>
-        /// <param name="componentToMove"></param>
-        public void SendComponentToTop(Component componentToMove)
-        {
-            if (!components.Contains(componentToMove))
-                throw new ArgumentException("The componentToMove does not exist in the collection");
-
-            components.Remove(componentToMove);
-            components.Add(componentToMove);
-
-        }
-
-        /// <summary>
-        /// Moves the specified component to the bottom
-        /// </summary>
-        /// <param name="componentToMove"></param>
-        public void SendComponentToBottom(Component componentToMove)
-        {
-            if (!components.Contains(componentToMove))
-                throw new ArgumentException("The componentToMove does not exist in the collection");
-
-            components.Remove(componentToMove);
-            components.Insert(0, componentToMove);
         }
 
         /// <summary>
@@ -206,9 +162,19 @@ namespace RLGui
         /// <param name="component"></param>
         public void RemoveComponent(Component component)
         {
-            if (components.Remove(component))
+            if (components.Contains(component))
             {
-                component.manager = null;
+                var cmd = new CommandData() { command = Command.Remove, comp = component };
+
+                if (isIterating)
+                {
+                    cmdQueue.Enqueue(cmd);
+                }
+                else
+                {
+                    cmd.DoCommand(this);
+                }
+                
             }
         }
 
@@ -234,9 +200,29 @@ namespace RLGui
 
             return over;
         }
+        
 
-        public ToolTip ToolTip { get; private set; }
-        bool ToolTipShowing = false;
+        internal void RequestTakeFocus(Component comp)
+        {
+            if (currentFocus != null)
+            {
+                currentFocus.HasFocus = false;
+                currentFocus.OnFocusReleased();
+            }
+
+            comp.HasFocus = true;
+            currentFocus = comp;
+            comp.OnFocusTaken();
+        }
+
+        internal void RequestReleaseFocus(Component comp)
+        {
+            comp.OnFocusReleased();
+
+            currentFocus = null;
+            comp.HasFocus = false;
+        }
+
 
         private void StartToolTip(Control control)
         {
@@ -249,19 +235,14 @@ namespace RLGui
             ToolTip.EndTooltip();
             ToolTipShowing = false;
         }
-
-        Component lastMouseOver;
-        float hoverTime;
-        bool isHovering;
-        MouseEventData lastMouseMoveData;
-
-
-
+        
         void console_Drawing(object sender, EventArgs<float> e)
         {
             Console.Root.Clear();
 
-            foreach (var currComponent in components)
+            sortedComps.Sort((c1, c2) => { return c1.Depth.CompareTo(c2.Depth); });
+
+            foreach (var currComponent in sortedComps)
             {
                 currComponent.OnUpdate(e.Value);
                 currComponent.OnPaint();
@@ -378,60 +359,71 @@ namespace RLGui
                 }
             }
         }
-
-
-        Component currentKBFocus;
-
-
-        internal void RequestKBTake(Component comp)
-        {
-            if (currentKBFocus != null)
-                currentKBFocus.HasKeyboardFocus = false;
-
-            comp.HasKeyboardFocus = true;
-            currentKBFocus = comp;
-        }
-
-        internal void RequestKBRelease(Component comp)
-        {
-            comp.OnFocusReleased();
-
-            currentKBFocus = null;
-            comp.HasKeyboardFocus = false;
-        }
-
-
+        
         void console_KeyUp(object sender, EventArgs<KeyRawEventData> e)
         {
-            foreach (var comp in components)
+            isIterating = true;
+            for (int i = components.Count - 1; i >= 0; i--)
             {
-                if (comp.KeyboardMode == KeyboardInputMode.Always || comp == currentKBFocus)
+                Component comp = components[i];
+                if (comp.KeyboardMode == KeyboardInputMode.Always || comp == currentFocus)
                 {
                     comp.OnKeyUp(e.Value);
                 }
             }
+            isIterating = false;
+            while (cmdQueue.Count != 0)
+                cmdQueue.Dequeue().DoCommand(this);
         }
 
         void console_KeyDown(object sender, EventArgs<KeyRawEventData> e)
         {
-            foreach (var comp in components)
+            isIterating = true;
+            for (int i = components.Count - 1; i >= 0; i--)
             {
-                if (comp.KeyboardMode == KeyboardInputMode.Always || comp == currentKBFocus)
+                Component comp = components[i];
+
+                if (comp == currentFocus)
+                {
+                    if (e.Value.Key == KeyCode.Tab && comp.CaptureTabKey == false)
+                    {
+                        // next to have focus
+                        int nextIndex = components.IndexOf(comp) + 1;
+                        if (nextIndex >= components.Count)
+                            nextIndex = 0;
+
+                        Component next = components[nextIndex];
+                        next.TakeFocus(); 
+                    }
+                    else
+                    {
+                        comp.OnKeyDown(e.Value);
+                    }
+                }
+                else if (comp.KeyboardMode == KeyboardInputMode.Always || comp == currentFocus)
                 {
                     comp.OnKeyDown(e.Value);
                 }
             }
+            isIterating = false;
+            while (cmdQueue.Count != 0)
+                cmdQueue.Dequeue().DoCommand(this);
         }
 
         void console_KeyChar(object sender, EventArgs<KeyCharEventData> e)
         {
-            foreach (var comp in components)
+            isIterating = true;
+            for (int i = components.Count - 1; i >= 0; i--)
             {
-                if (comp.KeyboardMode == KeyboardInputMode.Always || comp == currentKBFocus)
+                Component comp = components[i];
+                if (comp.KeyboardMode == KeyboardInputMode.Always || comp == currentFocus)
                 {
                     comp.OnKeyChar(e.Value);
                 }
             }
+            isIterating = false;
+            while (cmdQueue.Count != 0)
+                cmdQueue.Dequeue().DoCommand(this);
         }
     }
 }

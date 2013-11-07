@@ -28,8 +28,33 @@ using SharpRL;
 namespace RLGui.Controls
 {
 
-
-    public class MenuBox
+    public class MenuBox : ListBox
     {
+        public MenuBox(Point position, MenuBoxTemplate template)
+            : base(position, template)
+        {
+            CurrentSelected = -1;
+        }
+
+        protected override void OnItemSelected()
+        {
+            base.OnItemSelected();
+
+            Close();
+        }
+
+        protected internal override void OnOpening()
+        {
+            base.OnOpening();
+
+            TakeFocus();
+        }
+
+        protected internal override void OnFocusReleased()
+        {
+            base.OnFocusReleased();
+
+            Close();
+        }
     }
 }

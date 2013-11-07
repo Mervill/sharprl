@@ -36,8 +36,6 @@ namespace RLGui.Controls
             RadioUnsetChar = (char)SpecialChar.RadioUnset;
             RadioOnLeft = true;
 
-            Pigments.ViewMouseOver = new Pigment(Color.Gold, Color.Black);
-            Pigments.ViewSelected = Pigment.WhiteBlack;
         }
 
         public RadioBoxTemplate()
