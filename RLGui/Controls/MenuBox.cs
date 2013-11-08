@@ -30,17 +30,27 @@ namespace RLGui.Controls
 
     public class MenuBox : ListBox
     {
+        public event EventHandler<ListItemEventArgs> ChooseItem;
+
         public MenuBox(Point position, MenuBoxTemplate template)
             : base(position, template)
         {
             CurrentSelected = -1;
         }
 
-        protected override void OnItemSelected()
+        protected override void OnPushed()
         {
-            base.OnItemSelected();
+            base.OnPushed();
+
+            if (ChooseItem != null)
+                ChooseItem(this, new ListItemEventArgs(CurrentSelected, this[CurrentSelected]));
 
             Close();
+        }
+
+        protected override void OnSelectedItemChanged()
+        {
+            base.OnSelectedItemChanged();
         }
 
         protected internal override void OnOpening()
@@ -55,6 +65,16 @@ namespace RLGui.Controls
             base.OnFocusReleased();
 
             Close();
+        }
+
+        protected internal override void OnKeyDown(KeyRawEventData keyInfo)
+        {
+            base.OnKeyDown(keyInfo);
+
+            if (keyInfo.Key == KeyCode.Escape)
+            {
+                Close();
+            }
         }
     }
 }

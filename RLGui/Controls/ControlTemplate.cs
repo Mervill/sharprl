@@ -49,7 +49,7 @@ namespace RLGui.Controls
 
             Pigments = new ControlPigments()
             {
-                BorderFocused = new Pigment(Color.LightBlue, Color.Black),
+                BorderFocused = new Pigment(Color.Blue, Color.Black),
                 BorderMouseOver = new Pigment(Color.LightBlue, Color.Black)
 
             };
@@ -94,6 +94,8 @@ namespace RLGui.Controls
         /// Determines how keyboard focus is handled by the control.
         /// </summary>
         public KeyboardInputMode KeyboardMode { get; set; }
+
+        public int Layer { get; set; }
 
         /// <summary>
         /// Override to return the size the control should be based other template values

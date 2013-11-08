@@ -1,0 +1,15 @@
+syntax: glob
+*\bin\
+*\obj\
+*.suo
+*.png
+SharpRL_RLGui.ncp
+SharpRL/design.txt
+SharpRL/SharpRL.csproj.user
+SharpRL/Goals.txt
+SharpRL.userprefs
+RLGui/TODO.txt
+RLGui/Design.txt
+ClassDia_RLGui.pdf
+syntax: regexp
+^DOX/

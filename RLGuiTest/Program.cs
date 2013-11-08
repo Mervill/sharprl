@@ -66,7 +66,7 @@ namespace RLGuiTest
                 new ItemData("Item 4", "The fourth item")
             };
 
-            btn.Clicked += btn_Clicked;
+            btn.PushReleased += btn_Clicked;
 
             //var lb = new ListBox(new Point(30, 15), new ListBoxTemplate(listItems)
             //{
@@ -81,6 +81,7 @@ namespace RLGuiTest
 
             var cb = new CheckButton(new Point(15,2),
                 new CheckButtonTemplate() { Label = "CheckME", HasFrame = true, UnCheckedChar = 'O', CheckedChar = 'X',
+                    Layer = 100,
                 });
 
             var eb = new TextEntry(new Point(5, 30), new TextEntryTemplate()
@@ -107,9 +108,11 @@ namespace RLGuiTest
             });
 
             manager.AddComponents(panel, btn, cb, lb, eb, nb);
+
+            manager.Start();
         }
 
-        void btn_Clicked(object sender, EventArgs<MouseMessageData> e)
+        void btn_Clicked(object sender, EventArgs e)
         {
             Rectangle rect = (sender as Control).Rect;
 

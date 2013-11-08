@@ -99,8 +99,8 @@ namespace RLGui.Controls
     {
         private List<ItemData> items;
 
-        public event EventHandler<ListItemEventArgs> ItemSelected;
-        public event EventHandler<ListItemEventArgs> MouseOverItem;
+        public event EventHandler<ListItemEventArgs> SelectedItemChanged;
+        public event EventHandler<ListItemEventArgs> HilightedItemChanged;
         
         public ListBox(Point position, ListBoxTemplate template)
             :base(position, template)
@@ -112,7 +112,7 @@ namespace RLGui.Controls
             HAlign = template.HAlign;
 
             CurrentSelected = template.InitialSelected;
-            CurrentMouseOver = -1;
+            CurrentHilighted = -1;
 
             if (CurrentSelected < 0 || CurrentSelected >= items.Count)
                 CurrentSelected = -1;
@@ -122,7 +122,7 @@ namespace RLGui.Controls
 
         public int CurrentSelected { get; protected set; }
 
-        public int CurrentMouseOver { get; private set; }
+        public int CurrentHilighted { get; private set; }
 
         public ItemData this[int index]
         {
@@ -137,6 +137,27 @@ namespace RLGui.Controls
             get { return items.Count; }
         }
 
+        protected void DoChangeSelected(int index)
+        {
+            if (CurrentSelected == index)
+                return;
+
+            CurrentSelected = index;
+            OnSelectedItemChanged();
+        }
+
+        protected void DoChangeHilighted(int index)
+        {
+            if (CurrentHilighted == index)
+                return;
+
+
+            CurrentHilighted = index;
+
+            OnMouseOverItem();
+
+        }
+
         protected virtual int GetItemIndexAt(Point localPos)
         {
             if (ViewRect.Contains(localPos))
@@ -149,15 +170,39 @@ namespace RLGui.Controls
             }
         }
 
+        protected internal override void OnKeyDown(KeyRawEventData keyInfo)
+        {
+            base.OnKeyDown(keyInfo);
+
+            if (keyInfo.Key == KeyCode.Down)
+            {
+                int next = CurrentSelected + 1;
+                if (next >= Count)
+                {
+                    next = 0;
+                }
+                DoChangeSelected(next);
+            }
+            else if (keyInfo.Key == KeyCode.Up)
+            {
+                int next = CurrentSelected - 1;
+                if (next < 0)
+                {
+                    next = Count - 1;
+                }
+                DoChangeSelected(next);
+            }
+        }
+
         protected internal override void OnMouseMove(MouseMessageData mouseInfo)
         {
             base.OnMouseMove(mouseInfo);
 
             int index = GetItemIndexAt(mouseInfo.LocalPos);
 
-            if (CurrentMouseOver != index)
+            if (CurrentHilighted != index)
             {
-                CurrentMouseOver = index;
+                CurrentHilighted = index;
 
                 OnMouseOverItem();
             }
@@ -165,50 +210,45 @@ namespace RLGui.Controls
 
         protected virtual void OnMouseOverItem()
         {
-            if (MouseOverItem != null)
-                MouseOverItem(this, new ListItemEventArgs(CurrentMouseOver, items[CurrentMouseOver]));
+            if (HilightedItemChanged != null)
+                HilightedItemChanged(this, new ListItemEventArgs(CurrentHilighted, items[CurrentHilighted]));
         }
 
         protected internal override void OnMouseLeave()
         {
             base.OnMouseLeave();
 
-            CurrentMouseOver = -1;
+            CurrentHilighted = -1;
         }
 
-        protected internal override void OnMouseButtonDown(MouseMessageData mouseInfo)
+        protected override void OnPushed()
         {
-            base.OnMouseButtonDown(mouseInfo);
+            base.OnPushed();
 
-            if (mouseInfo.Button == MouseButton.Left)
+            if (IsMouseOver)
             {
-                int index = GetItemIndexAt(mouseInfo.LocalPos);
+                int index = GetItemIndexAt(MousePosition);
 
                 if (index != -1)
                 {
-                    if (CurrentSelected != index)
-                    {
-                        CurrentSelected = index;
-
-                        OnItemSelected();
-                    }
+                    DoChangeSelected(index);
                 }
             }
         }
 
-        protected virtual void OnItemSelected()
+        protected virtual void OnSelectedItemChanged()
         {
-            if (ItemSelected != null)
-                ItemSelected(this, new ListItemEventArgs(CurrentSelected, items[CurrentSelected]));
+            if (SelectedItemChanged != null)
+                SelectedItemChanged(this, new ListItemEventArgs(CurrentSelected, items[CurrentSelected]));
         }
 
         public override string ToolTipText
         {
             get
             {
-                if (CurrentMouseOver != -1)
+                if (CurrentHilighted != -1)
                 {
-                    return items[CurrentMouseOver].Tooltip;
+                    return items[CurrentHilighted].Tooltip;
                 }
                 else
                 {
@@ -225,7 +265,7 @@ namespace RLGui.Controls
             {
                 if (i == CurrentSelected)
                     pigment = Pigments.ViewSelected;
-                else if (i == CurrentMouseOver)
+                else if (i == CurrentHilighted)
                     pigment = Pigments.ViewMouseOver;
                 else
                     pigment = Pigments.ViewNormal;

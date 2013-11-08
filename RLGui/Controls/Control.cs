@@ -34,6 +34,10 @@ namespace RLGui.Controls
     /// </summary>
     public abstract class Control : Widget
     {
+        public event EventHandler Pushed;
+
+        public event EventHandler PushReleased;
+
 
         /// <summary>
         /// The pigments used when the control is drawn
@@ -82,6 +86,8 @@ namespace RLGui.Controls
         /// </summary>
         protected Rectangle ViewRect { get; private set; }
 
+        public bool IsBeingPushed { get; private set; }
+
         /// <summary>
         /// Construct a new Control object
         /// </summary>
@@ -99,6 +105,7 @@ namespace RLGui.Controls
             TitleLocation = template.TitleLocation;
             toolTipText = template.ToolTipText;
             KeyboardMode = template.KeyboardMode;
+            SetLayer(template.Layer);
 
             HasFrame = template.HasFrame;
 
@@ -169,6 +176,46 @@ namespace RLGui.Controls
             return Pigments.BorderNormal;
         }
 
+        protected void DoPush()
+        {
+            if (IsBeingPushed)
+                return;
+
+            IsBeingPushed = true;
+
+            OnPushed();
+        }
+
+        protected void DoPushRelease()
+        {
+            if (!IsBeingPushed)
+                return;
+
+            IsBeingPushed = false;
+
+            OnPushReleased();
+        }
+
+        protected internal override void OnKeyUp(KeyRawEventData keyInfo)
+        {
+            base.OnKeyUp(keyInfo);
+
+            if (keyInfo.Key == KeyCode.Enter || keyInfo.Key == KeyCode.KeypadEnter)
+            {
+                DoPushRelease();
+            }
+        }
+
+        protected internal override void OnKeyDown(KeyRawEventData keyInfo)
+        {
+            base.OnKeyDown(keyInfo);
+
+            if (keyInfo.Key == KeyCode.Enter || keyInfo.Key == KeyCode.KeypadEnter)
+            {
+                DoPush();
+            }
+        }
+
         /// <summary>
         /// Draws a frame around control using the pigment returned from GetCurrentBorderPigment().  This is called
         /// automatically on OnPaint message if HasFrame is true
@@ -217,5 +264,45 @@ namespace RLGui.Controls
         /// </summary>
         protected abstract void DrawContent();
 
+        protected virtual void OnPushed()
+        {
+            if (Pushed != null)
+                Pushed(this, null);
+        }
+
+        protected virtual void OnPushReleased()
+        {
+            if (PushReleased != null)
+                PushReleased(this, null);
+        }
+
+        protected internal override void OnMouseButtonDown(MouseMessageData mouseInfo)
+        {
+            base.OnMouseButtonDown(mouseInfo);
+
+            if (mouseInfo.Button == MouseButton.Left)
+            {
+                DoPush();
+            }
+        }
+
+
+        protected internal override void OnMouseLeave()
+        {
+            base.OnMouseLeave();
+
+            if (IsBeingPushed)
+                DoPushRelease();
+        }
+
+        protected internal override void OnMouseButtonUp(MouseMessageData mouseInfo)
+        {
+            base.OnMouseButtonUp(mouseInfo);
+
+            if (mouseInfo.Button == MouseButton.Left)
+            {
+                DoPushRelease();
+            }
+        }
     }
 }

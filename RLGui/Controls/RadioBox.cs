@@ -62,7 +62,7 @@ namespace RLGui.Controls
 
                 if (i == CurrentSelected)
                     pigment = Pigments.ViewSelected;
-                else if (i == CurrentMouseOver)
+                else if (i == CurrentHilighted)
                     pigment = Pigments.ViewMouseOver;
                 else
                     pigment = Pigments.ViewNormal;

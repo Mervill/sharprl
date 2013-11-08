@@ -62,7 +62,7 @@
     <Compile Include="Controls\NumberEntry.cs" />
     <Compile Include="Pigment.cs" />
     <Compile Include="MouseMessageData.cs" />
-    <Compile Include="DefaultPigment.cs" />
+    <Compile Include="ControlPigments.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Controls\RadioBox.cs" />
     <Compile Include="ToolTip.cs" />

@@ -55,15 +55,25 @@ namespace RLGui.Controls
             }
         }
 
-        protected override void OnClicked(MouseMessageData mouseInfo)
+        protected override void OnPushReleased()
         {
-            base.OnClicked(mouseInfo);
+            base.OnPushReleased();
 
             if (IsChecked)
                 IsChecked = false;
             else
                 IsChecked = true;
         }
+
+        //protected override void OnClicked(MouseMessageData mouseInfo)
+        //{
+        //    base.OnClicked(mouseInfo);
+
+        //    if (IsChecked)
+        //        IsChecked = false;
+        //    else
+        //        IsChecked = true;
+        //}
 
 
         protected override void DrawContent()

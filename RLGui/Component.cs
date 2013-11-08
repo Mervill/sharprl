@@ -52,7 +52,7 @@ namespace RLGui
     /// <summary>
     /// Base class for user interface components.  A component receives messages from the UIManager, and represents a visual
     /// object that can be interacted with via mouse and keyboard.
-    /// Classes deriving from Component handle system and input messages by overriding the appropriate virtual handler
+    /// Classes deriving from Component handle system and input messages by overriding the appropriate virtual message handler
     /// methods.
     /// </summary>
     /// <remarks>
@@ -61,8 +61,6 @@ namespace RLGui
     /// </remarks>
     public abstract class Component
     {
-        private bool hasFocus;
-
         /// <summary>
         /// Constructs a component.
         /// </summary>
@@ -72,17 +70,92 @@ namespace RLGui
             CaptureTabKey = false;
         }
 
-        internal UIManager manager;
+        #region Events
+
+        /// <summary>
+        /// Fired when the component has first been added to the UIManager.
+        /// </summary>
+        public event EventHandler Opened;
+
+        /// <summary>
+        /// Fired when the component is about to be removed from the UIManager
+        /// </summary>
+        public event EventHandler Closing;
+
+        /// <summary>
+        /// Fired when the mouse pointer has left this component's region
+        /// </summary>
+        public event EventHandler MouseLeave;
+
+        /// <summary>
+        /// Fired when the mouse pointer has entered this component's region
+        /// </summary>
+        public event EventHandler<EventArgs<MouseMessageData>> MouseEnter;
+
+        /// <summary>
+        /// Fired when the mouse has left the hover state while over this component
+        /// </summary>
+        public event EventHandler<EventArgs<MouseMessageData>> HoverEnd;
+
+        /// <summary>
+        /// Fired when the mouse has entered the hover state while over this component
+        /// </summary>
+        public event EventHandler<EventArgs<MouseMessageData>> HoverBegin;
+
+        /// <summary>
+        /// Fired when a mouse button has been released while over this component
+        /// </summary>
+        public event EventHandler<EventArgs<MouseMessageData>> MouseButtonUp;
+
+        /// <summary>
+        /// Fired when a mouse button has been pushed while over this component
+        /// </summary>
+        public event EventHandler<EventArgs<MouseMessageData>> MouseButtonDown;
+
+        /// <summary>
+        /// Fired when the mouse has moved while over this component
+        /// </summary>
+        public event EventHandler<EventArgs<MouseMessageData>> MouseMove;
+
+        /// <summary>
+        /// Fired when a key or series of keys has been pressed that have a character representation
+        /// </summary>
+        public event EventHandler<EventArgs<KeyCharEventData>> KeyChar;
+
+        /// <summary>
+        /// Fired when this component recieves a raw key released message.
+        /// </summary>
+        public event EventHandler<EventArgs<KeyRawEventData>> KeyUp;
+
+        /// <summary>
+        /// Fired when the component receives a raw keyboard key press message.
+        /// </summary>
+        public event EventHandler<EventArgs<KeyRawEventData>> KeyDown;
+
+        /// <summary>
+        /// Called when this component is doing an update
+        /// </summary>
+        public event EventHandler<EventArgs<float>> Update;
+
+        /// <summary>
+        /// Fired when the keyboard focus has been released by this component
+        /// </summary>
+        public event EventHandler FocusReleased;
+
+        /// <summary>
+        /// Fired when the keyboard focus has been taken by this component
+        /// </summary>
+        public event EventHandler FocusTaken;
+
+
+        #endregion
+
+        #region Properties
 
         /// <summary>
         /// Returns true if the mouse is currently over this component.
         /// </summary>
         public bool IsMouseOver { get; private set; }
-
-        /// <summary>
-        /// Returns true if the left mouse button has been pressed and is currently down while over this component.
-        /// </summary>
-        public bool IsBeingPushed { get; private set; }
 
         /// <summary>
         /// The current mouse position in local space.  If the mouse cursor is outside of this component's
@@ -95,26 +168,11 @@ namespace RLGui
         /// </summary>
         public bool IsHovering { get; private set; }
 
-        public int Depth { get; set; }
-
         /// <summary>
-        /// Override to provide customized hit testing.  UIManager uses this to determine if mouse messages should be passed to
-        /// this component.
+        /// Get the drawing layer for this Component. Higher layer components are above lower layers
+        /// in draw order and when determining hit tests.  Use SetLayer to set this component's layer.
         /// </summary>
-        /// <param name="pos">The position, in console space, to be checked</param>
-        /// <returns>True if the position is within the component's region</returns>
-        public abstract bool HitTest(Point pos);
-
-        /// <summary>
-        /// This method will be used to transform mouse location to local space when sending mouse input messages.
-        /// Override to translate the console space positon to more useful coordinates for the component when
-        /// receiving mouse input messages.
-        /// </summary>
-        /// <param name="pos">The position in console space</param>
-        /// <returns>The position translated to local space</returns>
-        public abstract Point ConsoleToLocalSpace(Point pos);
-        
-
+        public int Layer { get; private set; }
 
         /// <summary>
         /// The current keyboard input mode, which determines when this component receives keyboard messages.
@@ -127,8 +185,6 @@ namespace RLGui
         /// </summary>
         public bool CaptureTabKey { get; set; }
 
-
-
         /// <summary>
         /// True if this component has the current focus.
         /// </summary>
@@ -140,6 +196,8 @@ namespace RLGui
                 hasFocus = value;
             }
         }
+
+        #endregion
 
         /// <summary>
         /// Take the focus.  Other components will loose their focus if any has it.
@@ -164,6 +222,10 @@ namespace RLGui
             manager.RequestReleaseFocus(this);
         }
 
+        /// <summary>
+        /// Close this component.  This will cause the Closed message to be sent and then this
+        /// component will be removed from the UIManager
+        /// </summary>
         public void Close()
         {
             OnClosing();
@@ -171,16 +233,52 @@ namespace RLGui
             manager.RemoveComponent(this);
         }
 
-        public event EventHandler Opening;
-
-        protected internal virtual void OnOpening()
+        /// <summary>
+        /// Set the drawing layer of this component.
+        /// </summary>
+        /// <param name="layer"></param>
+        public void SetLayer(int layer)
         {
-            if (Opening != null)
-                Opening(this, null);
+            this.Layer = layer;
+
+            if (manager != null)
+                manager.needsSorting = true;
         }
 
-        public event EventHandler Closing;
+        /// <summary>
+        /// Override to provide customized hit testing.  UIManager uses this to determine if mouse messages should be passed to
+        /// this component.
+        /// </summary>
+        /// <param name="pos">The position, in console space, to be checked</param>
+        /// <returns>True if the position is within the component's region</returns>
+        public abstract bool HitTest(Point pos);
 
+        /// <summary>
+        /// This method will be used to transform mouse location to local space when sending mouse input messages.
+        /// Override to translate the console space positon to more useful coordinates for the component when
+        /// receiving mouse input messages.
+        /// </summary>
+        /// <param name="pos">The position in console space</param>
+        /// <returns>The position translated to local space</returns>
+        public abstract Point ConsoleToLocalSpace(Point pos);
+
+
+
+        /// <summary>
+        /// Called when the component has been added to a UIManager. Override to provide any needed
+        /// initialization code.
+        /// </summary>
+        protected internal virtual void OnOpening()
+        {
+            if (Opened != null)
+                Opened(this, null);
+        }
+
+
+        /// <summary>
+        /// Called when the component is about to be removed the UIManager. Override to provide
+        /// any de-initializaion code
+        /// </summary>
         protected internal virtual void OnClosing()
         {
             if (Closing != null)
@@ -198,10 +296,6 @@ namespace RLGui
                 KeyDown(this, new EventArgs<KeyRawEventData>(keyInfo));
         }
 
-        /// <summary>
-        /// Fired when the component receives a raw keyboard key press message.
-        /// </summary>
-        public event EventHandler<EventArgs<KeyRawEventData>> KeyDown;
 
 
         /// <summary>
@@ -215,10 +309,6 @@ namespace RLGui
                 KeyUp(this, new EventArgs<KeyRawEventData>(keyInfo));
         }
 
-        /// <summary>
-        /// Fired when this component recieves a raw key released message.
-        /// </summary>
-        public event EventHandler<EventArgs<KeyRawEventData>> KeyUp;
 
 
 
@@ -234,10 +324,6 @@ namespace RLGui
                 KeyChar(this, new EventArgs<KeyCharEventData>(keyInfo));
         }
 
-        /// <summary>
-        /// Fired when a key or series of keys has been pressed that have a character representation
-        /// </summary>
-        public event EventHandler<EventArgs<KeyCharEventData>> KeyChar;
 
 
         /// <summary>
@@ -253,10 +339,6 @@ namespace RLGui
                 MouseMove(this, new EventArgs<MouseMessageData>(mouseInfo));
         }
 
-        /// <summary>
-        /// Fired when the mouse has moved while over this component
-        /// </summary>
-        public event EventHandler<EventArgs<MouseMessageData>> MouseMove;
 
 
 
@@ -269,11 +351,6 @@ namespace RLGui
         /// <param name="mouseInfo">Mouse input message data</param>
         protected internal virtual void OnMouseButtonDown(MouseMessageData mouseInfo)
         {
-            if (mouseInfo.Button == MouseButton.Left)
-            {
-                IsBeingPushed = true;
-            }
-
             if (MouseButtonDown != null)
                 MouseButtonDown(this, new EventArgs<MouseMessageData>(mouseInfo));
 
@@ -283,10 +360,6 @@ namespace RLGui
             }
         }
 
-        /// <summary>
-        /// Fired when a mouse button has been pushed while over this component
-        /// </summary>
-        public event EventHandler<EventArgs<MouseMessageData>> MouseButtonDown;
 
 
         /// <summary>
@@ -296,25 +369,11 @@ namespace RLGui
         /// <param name="mouseInfo">Mouse input message data</param>
         protected internal virtual void OnMouseButtonUp(MouseMessageData mouseInfo)
         {
-            if (mouseInfo.Button == MouseButton.Left)
-            {
-                if (IsBeingPushed)
-                {
-                    IsBeingPushed = false;
-
-                    OnClicked(mouseInfo);
-                }
-            }
-
             if (MouseButtonUp != null)
                 MouseButtonUp(this, new EventArgs<MouseMessageData>(mouseInfo));
         }
 
 
-        /// <summary>
-        /// Fired when a mouse button has been released while over this component
-        /// </summary>
-        public event EventHandler<EventArgs<MouseMessageData>> MouseButtonUp;
 
 
         /// <summary>
@@ -330,10 +389,6 @@ namespace RLGui
                 HoverBegin(this, new EventArgs<MouseMessageData>(mouseInfo));
         }
 
-        /// <summary>
-        /// Fired when the mouse has entered the hover state while over this component
-        /// </summary>
-        public event EventHandler<EventArgs<MouseMessageData>> HoverBegin;
 
 
         /// <summary>
@@ -349,10 +404,6 @@ namespace RLGui
                 HoverEnd(this, new EventArgs<MouseMessageData>(mouseInfo));
         }
 
-        /// <summary>
-        /// Fired when the mouse has left the hover state while over this component
-        /// </summary>
-        public event EventHandler<EventArgs<MouseMessageData>> HoverEnd;
 
 
 
@@ -371,10 +422,6 @@ namespace RLGui
         }
 
 
-        /// <summary>
-        /// Fired when the mouse pointer has entered this component's region
-        /// </summary>
-        public event EventHandler<EventArgs<MouseMessageData>> MouseEnter;
 
 
 
@@ -384,8 +431,7 @@ namespace RLGui
         /// </summary>
         protected internal virtual void OnMouseLeave()
         {
-            if (IsBeingPushed)
-                IsBeingPushed = false;
+
 
             IsMouseOver = false;
             MousePosition = Point.Empty;
@@ -394,10 +440,6 @@ namespace RLGui
                 MouseLeave(this, null);
         }
 
-        /// <summary>
-        /// Fired when the mouse pointer has left this component's region
-        /// </summary>
-        public event EventHandler MouseLeave;
 
 
 
@@ -412,10 +454,7 @@ namespace RLGui
                 FocusTaken(this, null);
         }
 
-        /// <summary>
-        /// Fired when the keyboard focus has been taken by this component
-        /// </summary>
-        public event EventHandler FocusTaken;
+
 
 
 
@@ -430,10 +469,6 @@ namespace RLGui
                 FocusReleased(this, null);
         }
 
-        /// <summary>
-        /// Fired when the keyboard focus has been released by this component
-        /// </summary>
-        public event EventHandler FocusReleased;
 
         /// <summary>
         /// Called when this component receives an Update system message. Per-frame or timing
@@ -447,10 +482,6 @@ namespace RLGui
                 Update(this, new EventArgs<float>(elapsed));
         }
 
-        /// <summary>
-        /// Called when this component is doing an update
-        /// </summary>
-        public event EventHandler<EventArgs<float>> Update;
 
 
 
@@ -463,28 +494,16 @@ namespace RLGui
         protected internal abstract void OnPaint();
 
         /// <summary>
-        /// Called when this widget receives a Clicked message, i.e. when the left mouse button
-        /// is pushed and released while over this component.
-        /// Override to provide custom message handling code after calling base method
-        /// </summary>
-        /// <param name="mouseInfo">Mouse input message data</param>
-        protected virtual void OnClicked(MouseMessageData mouseInfo)
-        {
-            if (Clicked != null)
-                Clicked(this, new EventArgs<MouseMessageData>(mouseInfo));
-        }
-
-        /// <summary>
-        /// Fired when the left mouse button is pushed and released while over this component
-        /// </summary>
-        public event EventHandler<EventArgs<MouseMessageData>> Clicked;
-
-        /// <summary>
         /// Called when this component should actually put its contents onto to the console surface, which
         /// is passed as a parameter to this method.
         /// </summary>
         /// <param name="renderTo"></param>
         protected internal abstract void OnRender(Surface renderTo);
+
+
+
+        internal UIManager manager;
+        private bool hasFocus;
 
     }
 

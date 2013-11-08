@@ -35,16 +35,7 @@ namespace RLGui
     /// </summary>
     public class UIManager
     {
-        List<Component> components = new List<Component>();
-        List<Component> sortedComps = new List<Component>();
 
-        Component lastMouseOver;
-        float hoverTime;
-        bool isHovering;
-        MouseEventData lastMouseMoveData;
-        Component currentFocus;
-        bool ToolTipShowing = false;
-        
 
 
         /// <summary>
@@ -53,13 +44,7 @@ namespace RLGui
         /// <param name="console"></param>
         public UIManager(GameConsole console, ToolTip toolTip = null)
         {
-            console.KeyChar += new EventHandler<EventArgs<KeyCharEventData>>(console_KeyChar);
-            console.KeyDown += new EventHandler<EventArgs<KeyRawEventData>>(console_KeyDown);
-            console.KeyUp += new EventHandler<EventArgs<KeyRawEventData>>(console_KeyUp);
-            console.MouseButtonDown += new EventHandler<EventArgs<MouseEventData>>(console_MouseButtonDown);
-            console.MouseButtonUp += new EventHandler<EventArgs<MouseEventData>>(console_MouseButtonUp);
-            console.MouseMove += new EventHandler<EventArgs<MouseEventData>>(console_MouseMove);
-            console.Drawing += new EventHandler<EventArgs<float>>(console_Drawing);
+
 
             Console = console;
             HoverRestTime = 1f;
@@ -72,64 +57,34 @@ namespace RLGui
             ToolTip.Manager = this;
         }
 
+        public void Start()
+        {
+            Console.KeyChar += new EventHandler<EventArgs<KeyCharEventData>>(console_KeyChar);
+            Console.KeyDown += new EventHandler<EventArgs<KeyRawEventData>>(console_KeyDown);
+            Console.KeyUp += new EventHandler<EventArgs<KeyRawEventData>>(console_KeyUp);
+            Console.MouseButtonDown += new EventHandler<EventArgs<MouseEventData>>(console_MouseButtonDown);
+            Console.MouseButtonUp += new EventHandler<EventArgs<MouseEventData>>(console_MouseButtonUp);
+            Console.MouseMove += new EventHandler<EventArgs<MouseEventData>>(console_MouseMove);
+            Console.Drawing += new EventHandler<EventArgs<float>>(console_Drawing);
+        }
+
+        public void Stop()
+        {
+            Console.KeyChar -= console_KeyChar;
+            Console.KeyDown -= console_KeyDown;
+            Console.KeyUp -= console_KeyUp;
+            Console.MouseButtonDown -= console_MouseButtonDown;
+            Console.MouseButtonUp -= console_MouseButtonUp;
+            Console.MouseMove -= console_MouseMove;
+            Console.Drawing -= console_Drawing;
+        }
+
         /// <summary>
         /// The number of seconds of mouse cursor rest time after which a MouseHover message is sent
         /// </summary>
         public float HoverRestTime { get; set; }
-        
-
 
         public ToolTip ToolTip { get; private set; }
-
-        internal GameConsole Console { get; private set; }
-
-
-
-        private void ComponentAdded(Component comp)
-        {
-            comp.manager = this;
-            comp.OnOpening();
-        }
-
-        private bool isIterating = false;
-        enum Command
-        {
-            Add,
-            Remove
-        }
-
-        class CommandData
-        {
-            public Command command;
-            public Component comp;
-
-            public void DoCommand(UIManager manager)
-            {
-                switch (command)
-                {
-                    case Command.Add:
-                        manager.components.Add(comp);
-                        manager.sortedComps.Add(comp);
-                        manager.ComponentAdded(comp);
-                        break;
-
-                    case Command.Remove:
-                        manager.components.Remove(comp);
-                        manager.sortedComps.Remove(comp);
-                        comp.manager = null;
-
-                        if (manager.lastMouseOver == comp)
-                            manager.lastMouseOver = null;
-
-                        if (manager.currentFocus == comp)
-                            manager.currentFocus = null;
-                        break;
-                }
-            }
-        }
-
-        Queue<CommandData> cmdQueue = new Queue<CommandData>();
-
 
         /// <summary>
         /// Adds one or more components to the top of the component collection.
@@ -187,10 +142,11 @@ namespace RLGui
         public Component GetTopComponentAt(Point pos)
         {
             Component over = null;
-            for (int i = components.Count - 1; i >= 0; i--)
-            {
-                var curr = components[i];
 
+            IEnumerable<Component> sorted = SortComponents();
+
+            foreach(var curr in sorted.Reverse())
+            {
                 if (curr.HitTest(pos))
                 {
                     over = curr;
@@ -200,7 +156,92 @@ namespace RLGui
 
             return over;
         }
-        
+
+
+
+        List<Component> components = new List<Component>();
+        Component lastMouseOver;
+        float hoverTime;
+        bool isHovering;
+        MouseEventData lastMouseMoveData;
+        Component currentFocus;
+        bool ToolTipShowing = false;
+        internal bool needsSorting = false;
+        Queue<CommandData> cmdQueue = new Queue<CommandData>();
+        internal GameConsole Console { get; private set; }
+        private bool isIterating = false;
+        IEnumerable<Component> sortedCache;
+
+
+
+        private void ComponentAdded(Component comp)
+        {
+            comp.manager = this;
+            comp.OnOpening();
+        }
+
+        private IEnumerable<Component> SortComponents()
+        {
+            if (needsSorting)
+            {
+                needsSorting = false;
+                sortedCache = components.OrderBy(c => c.Layer, Comparer<int>.Default);
+            }
+
+            return sortedCache;
+        }
+
+        private void StartIteration()
+        {
+            isIterating = true;
+        }
+
+        private void EndIteration()
+        {
+            isIterating = false;
+            while (cmdQueue.Count != 0)
+                cmdQueue.Dequeue().DoCommand(this);
+        }
+
+
+        enum Command
+        {
+            Add,
+            Remove
+        }
+
+        class CommandData
+        {
+            public Command command;
+            public Component comp;
+
+            public void DoCommand(UIManager manager)
+            {
+                switch (command)
+                {
+                    case Command.Add:
+                        manager.components.Add(comp);
+                        //manager.sortedComps.Add(comp);
+                        manager.ComponentAdded(comp);
+                        manager.needsSorting = true;
+                        break;
+
+                    case Command.Remove:
+                        manager.components.Remove(comp);
+                        //manager.sortedComps.Remove(comp);
+                        manager.needsSorting = true;
+
+                        comp.manager = null;
+
+                        if (manager.lastMouseOver == comp)
+                            manager.lastMouseOver = null;
+
+                        if (manager.currentFocus == comp)
+                            manager.currentFocus = null;
+                        break;
+                }
+            }
+        }
 
         internal void RequestTakeFocus(Component comp)
         {
@@ -240,17 +281,17 @@ namespace RLGui
         {
             Console.Root.Clear();
 
-            sortedComps.Sort((c1, c2) => { return c1.Depth.CompareTo(c2.Depth); });
+            var sorted = SortComponents();
 
-            foreach (var currComponent in sortedComps)
+            StartIteration();
+            foreach (var comp in sorted)
             {
-                currComponent.OnUpdate(e.Value);
-                currComponent.OnPaint();
-                currComponent.OnRender(Console.Root);
 
-
-
+                comp.OnUpdate(e.Value);
+                comp.OnPaint();
+                comp.OnRender(Console.Root);
             }
+            EndIteration();
 
             if (ToolTipShowing)
             {
@@ -362,27 +403,23 @@ namespace RLGui
         
         void console_KeyUp(object sender, EventArgs<KeyRawEventData> e)
         {
-            isIterating = true;
-            for (int i = components.Count - 1; i >= 0; i--)
+            StartIteration();
+            foreach (var comp in components)
             {
-                Component comp = components[i];
                 if (comp.KeyboardMode == KeyboardInputMode.Always || comp == currentFocus)
                 {
                     comp.OnKeyUp(e.Value);
                 }
             }
-            isIterating = false;
-            while (cmdQueue.Count != 0)
-                cmdQueue.Dequeue().DoCommand(this);
+            EndIteration();
         }
 
         void console_KeyDown(object sender, EventArgs<KeyRawEventData> e)
         {
-            isIterating = true;
-            for (int i = components.Count - 1; i >= 0; i--)
+            Component nextFocus = null;
+            StartIteration();
+            foreach(var comp in components)
             {
-                Component comp = components[i];
-
                 if (comp == currentFocus)
                 {
                     if (e.Value.Key == KeyCode.Tab && comp.CaptureTabKey == false)
@@ -392,8 +429,7 @@ namespace RLGui
                         if (nextIndex >= components.Count)
                             nextIndex = 0;
 
-                        Component next = components[nextIndex];
-                        next.TakeFocus(); 
+                        nextFocus = components[nextIndex];
                     }
                     else
                     {
@@ -405,25 +441,27 @@ namespace RLGui
                     comp.OnKeyDown(e.Value);
                 }
             }
-            isIterating = false;
-            while (cmdQueue.Count != 0)
-                cmdQueue.Dequeue().DoCommand(this);
+            EndIteration();
+
+            if (nextFocus != null)
+                nextFocus.TakeFocus();
+            else if (e.Value.Key == KeyCode.Tab) // tab key pushed but no one had current focus, set set focus to first component
+            {
+                components[0].TakeFocus();
+            }
         }
 
         void console_KeyChar(object sender, EventArgs<KeyCharEventData> e)
         {
-            isIterating = true;
-            for (int i = components.Count - 1; i >= 0; i--)
+            StartIteration();
+            foreach (var comp in components)
             {
-                Component comp = components[i];
                 if (comp.KeyboardMode == KeyboardInputMode.Always || comp == currentFocus)
                 {
                     comp.OnKeyChar(e.Value);
                 }
             }
-            isIterating = false;
-            while (cmdQueue.Count != 0)
-                cmdQueue.Dequeue().DoCommand(this);
+            EndIteration();
         }
     }
 }
