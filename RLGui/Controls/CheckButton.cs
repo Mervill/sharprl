@@ -65,17 +65,6 @@ namespace RLGui.Controls
                 IsChecked = true;
         }
 
-        //protected override void OnClicked(MouseMessageData mouseInfo)
-        //{
-        //    base.OnClicked(mouseInfo);
-
-        //    if (IsChecked)
-        //        IsChecked = false;
-        //    else
-        //        IsChecked = true;
-        //}
-
-
         protected override void DrawContent()
         {
             var pigment = GetCurrentViewPigment();
@@ -94,7 +83,7 @@ namespace RLGui.Controls
 
             string fullLabel = string.Format("{0} {1}", checkChar, Label);
 
-            DrawingSurface.PrintStringRect(ViewRect, fullLabel, HAlignment, VAlignment);
+            DrawingSurface.PrintStringRect(ClientRect, fullLabel, HAlignment, VAlignment);
         }
     }
 }

@@ -73,7 +73,7 @@ namespace RLGui.Controls
 
             DrawingSurface.Clear();
 
-            DrawingSurface.PrintStringRect(ViewRect, Label, HAlignment, VAlignment);
+            DrawingSurface.PrintStringRect(ClientRect, Label, HAlignment, VAlignment);
         }
 
     }

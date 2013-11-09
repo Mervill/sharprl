@@ -18,7 +18,7 @@ namespace RLGui
         public Pigment ViewPigment { get; set; }
         public bool HasFrame { get; set; }
 
-        internal UIManager Manager { get; set; }
+        internal View Manager { get; set; }
 
         public ToolTip()
         {
@@ -46,8 +46,8 @@ namespace RLGui
 
             Rectangle basicRect = new Rectangle(nearPosition, size);
 
-            int screenRight = Manager.Console.Root.Rect.Right;
-            int screenBottom = Manager.Console.Root.Rect.Bottom;
+            int screenRight = Manager.drawingSurface.Rect.Right;
+            int screenBottom = Manager.drawingSurface.Rect.Bottom;
 
             int dx = 0;
             int dy = 0;

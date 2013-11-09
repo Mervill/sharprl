@@ -22,7 +22,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using SharpRL;
 using System.Drawing;
 using RLGui.Controls;
@@ -30,23 +29,18 @@ using SharpRL.Toolkit;
 
 namespace RLGui
 {
-    /// <summary>
-    /// This object hooks into the GameConsole and manages sending input and system messages to its MainComponent
-    /// </summary>
-    public class UIManager
+
+
+    public class View
     {
 
-
-
-        /// <summary>
-        /// Constructs a UIManager object given the GameConsole
-        /// </summary>
-        /// <param name="console"></param>
-        public UIManager(GameConsole console, ToolTip toolTip = null)
+        public View(Rectangle viewport, Surface renderTo, ToolTip toolTip = null)
         {
 
+            this.viewPort = viewport;
+            drawingSurface = new MemorySurface(viewport.Width, viewport.Height);
+            this.renderTo = renderTo;
 
-            Console = console;
             HoverRestTime = 1f;
 
             if (toolTip == null)
@@ -55,29 +49,12 @@ namespace RLGui
                 this.ToolTip = toolTip;
 
             ToolTip.Manager = this;
+
+            coordDelta = new Size(-viewport.X, -viewport.Y);
+
+            components = new ComponentCollection(this);
         }
 
-        public void Start()
-        {
-            Console.KeyChar += new EventHandler<EventArgs<KeyCharEventData>>(console_KeyChar);
-            Console.KeyDown += new EventHandler<EventArgs<KeyRawEventData>>(console_KeyDown);
-            Console.KeyUp += new EventHandler<EventArgs<KeyRawEventData>>(console_KeyUp);
-            Console.MouseButtonDown += new EventHandler<EventArgs<MouseEventData>>(console_MouseButtonDown);
-            Console.MouseButtonUp += new EventHandler<EventArgs<MouseEventData>>(console_MouseButtonUp);
-            Console.MouseMove += new EventHandler<EventArgs<MouseEventData>>(console_MouseMove);
-            Console.Drawing += new EventHandler<EventArgs<float>>(console_Drawing);
-        }
-
-        public void Stop()
-        {
-            Console.KeyChar -= console_KeyChar;
-            Console.KeyDown -= console_KeyDown;
-            Console.KeyUp -= console_KeyUp;
-            Console.MouseButtonDown -= console_MouseButtonDown;
-            Console.MouseButtonUp -= console_MouseButtonUp;
-            Console.MouseMove -= console_MouseMove;
-            Console.Drawing -= console_Drawing;
-        }
 
         /// <summary>
         /// The number of seconds of mouse cursor rest time after which a MouseHover message is sent
@@ -85,6 +62,8 @@ namespace RLGui
         public float HoverRestTime { get; set; }
 
         public ToolTip ToolTip { get; private set; }
+
+        public Rectangle ViewPort { get { return viewPort; } }
 
         /// <summary>
         /// Adds one or more components to the top of the component collection.
@@ -95,19 +74,7 @@ namespace RLGui
         {
             foreach(var component in comps)
             {
-                if (!components.Contains(component))
-                {
-                    var cmd = new CommandData() { comp = component, command = Command.Add };
-
-                    if (isIterating)
-                    {
-                        cmdQueue.Enqueue(cmd);
-                    }
-                    else
-                    {
-                        cmd.DoCommand(this);
-                    }
-                }
+                components.Add(component);
             }
         }
 
@@ -117,20 +84,7 @@ namespace RLGui
         /// <param name="component"></param>
         public void RemoveComponent(Component component)
         {
-            if (components.Contains(component))
-            {
-                var cmd = new CommandData() { command = Command.Remove, comp = component };
-
-                if (isIterating)
-                {
-                    cmdQueue.Enqueue(cmd);
-                }
-                else
-                {
-                    cmd.DoCommand(this);
-                }
-                
-            }
+            components.Remove(component);
         }
 
         /// <summary>
@@ -143,7 +97,7 @@ namespace RLGui
         {
             Component over = null;
 
-            IEnumerable<Component> sorted = SortComponents();
+            IEnumerable<Component> sorted = components.GetSorted();
 
             foreach(var curr in sorted.Reverse())
             {
@@ -158,89 +112,38 @@ namespace RLGui
         }
 
 
-
-        List<Component> components = new List<Component>();
+        ComponentCollection components;
         Component lastMouseOver;
         float hoverTime;
         bool isHovering;
         MouseEventData lastMouseMoveData;
         Component currentFocus;
         bool ToolTipShowing = false;
-        internal bool needsSorting = false;
-        Queue<CommandData> cmdQueue = new Queue<CommandData>();
-        internal GameConsole Console { get; private set; }
-        private bool isIterating = false;
-        IEnumerable<Component> sortedCache;
+        internal MemorySurface drawingSurface;
+        Surface renderTo;
+        Rectangle viewPort;
+        Size coordDelta;
 
-
-
-        private void ComponentAdded(Component comp)
+        internal void ComponentLayerChanged()
         {
-            comp.manager = this;
+            components.NeedsSorting = true;
+        }
+
+        internal void ComponentAdded(Component comp)
+        {
+            comp.view = this;
             comp.OnOpening();
         }
 
-        private IEnumerable<Component> SortComponents()
+        internal void ComponentRemoved(Component comp)
         {
-            if (needsSorting)
-            {
-                needsSorting = false;
-                sortedCache = components.OrderBy(c => c.Layer, Comparer<int>.Default);
-            }
+            comp.view = null;
 
-            return sortedCache;
-        }
+            if (lastMouseOver == comp)
+                lastMouseOver = null;
 
-        private void StartIteration()
-        {
-            isIterating = true;
-        }
-
-        private void EndIteration()
-        {
-            isIterating = false;
-            while (cmdQueue.Count != 0)
-                cmdQueue.Dequeue().DoCommand(this);
-        }
-
-
-        enum Command
-        {
-            Add,
-            Remove
-        }
-
-        class CommandData
-        {
-            public Command command;
-            public Component comp;
-
-            public void DoCommand(UIManager manager)
-            {
-                switch (command)
-                {
-                    case Command.Add:
-                        manager.components.Add(comp);
-                        //manager.sortedComps.Add(comp);
-                        manager.ComponentAdded(comp);
-                        manager.needsSorting = true;
-                        break;
-
-                    case Command.Remove:
-                        manager.components.Remove(comp);
-                        //manager.sortedComps.Remove(comp);
-                        manager.needsSorting = true;
-
-                        comp.manager = null;
-
-                        if (manager.lastMouseOver == comp)
-                            manager.lastMouseOver = null;
-
-                        if (manager.currentFocus == comp)
-                            manager.currentFocus = null;
-                        break;
-                }
-            }
+            if (currentFocus == comp)
+                currentFocus = null;
         }
 
         internal void RequestTakeFocus(Component comp)
@@ -276,31 +179,40 @@ namespace RLGui
             ToolTip.EndTooltip();
             ToolTipShowing = false;
         }
-        
-        void console_Drawing(object sender, EventArgs<float> e)
+
+        private MouseEventData TranslateToViewport(MouseEventData src)
         {
-            Console.Root.Clear();
+            return new MouseEventData(Point.Add(src.ConsoleLocation, coordDelta), src.PixelPosition, src.Button);
+        }
 
-            var sorted = SortComponents();
 
-            StartIteration();
+        public void OnUpdate(float elapsed)
+        {
+            if (components.Count == 0)
+                return;
+
+            drawingSurface.Clear();
+
+            var sorted = components.GetSorted();
+
+            components.StartEnumeration();
             foreach (var comp in sorted)
             {
 
-                comp.OnUpdate(e.Value);
-                comp.OnPaint();
-                comp.OnRender(Console.Root);
+                comp.OnUpdate(elapsed);
+                comp.OnRedraw();
+                comp.OnRender(drawingSurface);
             }
-            EndIteration();
+            components.EndEnumeration();
 
             if (ToolTipShowing)
             {
-                ToolTip.OnUpdate(e.Value);
+                ToolTip.OnUpdate(elapsed);
                 ToolTip.OnPaint();
-                ToolTip.OnRender(Console.Root);
+                ToolTip.OnRender(drawingSurface);
             }
 
-            hoverTime += e.Value;
+            hoverTime += elapsed;
 
             if (!isHovering && hoverTime >= HoverRestTime)
             {
@@ -319,17 +231,24 @@ namespace RLGui
                         {
                             Control control = currComponent as Control;
 
-                            if(!string.IsNullOrEmpty(control.ToolTipText))
+                            if (!string.IsNullOrEmpty(control.ToolTipText))
                                 StartToolTip(control);
                         }
                     }
                 }
             }
+
+            Surface.Blit(drawingSurface, renderTo, viewPort.X, viewPort.Y);
         }
 
-        void console_MouseMove(object sender, EventArgs<MouseEventData> e)
+        public void OnMouseMove(MouseEventData mouse)
         {
-            lastMouseMoveData = e.Value;
+            if (components.Count == 0)
+                return;
+
+            var mouseData = TranslateToViewport(mouse);
+
+            lastMouseMoveData = mouseData;
             hoverTime = 0f;
 
             if (ToolTipShowing)
@@ -337,11 +256,12 @@ namespace RLGui
                 EndToolTip();
             }
 
-            var currComponent = GetTopComponentAt(e.Value.ConsoleLocation);
+            var currComponent = GetTopComponentAt(mouseData.ConsoleLocation);
 
             if (currComponent != null)
             {
-                var childMouseInfo = new MouseMessageData(e.Value, currComponent.ConsoleToLocalSpace(e.Value.ConsoleLocation));
+                var childMouseInfo = new MouseMessageData(mouseData, 
+                    currComponent.ConsoleToLocalSpace(mouseData.ConsoleLocation));
 
                 if (currComponent != lastMouseOver)
                 {
@@ -364,104 +284,167 @@ namespace RLGui
 
                 currComponent.OnMouseMove(childMouseInfo);
             }
-            else if(lastMouseOver != null)
+            else if (lastMouseOver != null)
             {
                 lastMouseOver.OnMouseLeave();
 
                 lastMouseOver = null;
             }
-
         }
 
-        void console_MouseButtonUp(object sender, EventArgs<MouseEventData> e)
+        public void OnMouseButtonUp(MouseEventData mouse)
         {
-            var currComponent = GetTopComponentAt(e.Value.ConsoleLocation);
+            if (components.Count == 0)
+                return;
+
+            var mouseData = TranslateToViewport(mouse);
+
+            var currComponent = GetTopComponentAt(mouseData.ConsoleLocation);
 
             if(currComponent != null)
             {
-                if (currComponent.HitTest(e.Value.ConsoleLocation))
+                if (currComponent.HitTest(mouseData.ConsoleLocation))
                 {
-                    var childMouseInfo = new MouseMessageData(e.Value, currComponent.ConsoleToLocalSpace(e.Value.ConsoleLocation));
+                    var childMouseInfo = new MouseMessageData(mouseData, 
+                        currComponent.ConsoleToLocalSpace(mouseData.ConsoleLocation));
                     currComponent.OnMouseButtonUp(childMouseInfo);
                 }
             }
         }
 
-        void console_MouseButtonDown(object sender, EventArgs<MouseEventData> e)
+        public void OnMouseButtonDown(MouseEventData mouse)
         {
-            var currComponent = GetTopComponentAt(e.Value.ConsoleLocation);
+            if (components.Count == 0)
+                return;
+
+            var mouseData = TranslateToViewport(mouse);
+
+            var currComponent = GetTopComponentAt(mouseData.ConsoleLocation);
 
             if (currComponent != null)
             {
-                if (currComponent.HitTest(e.Value.ConsoleLocation))
+                if (currComponent.HitTest(mouseData.ConsoleLocation))
                 {
-                    var childMouseInfo = new MouseMessageData(e.Value, currComponent.ConsoleToLocalSpace(e.Value.ConsoleLocation));
+                    var childMouseInfo = new MouseMessageData(mouseData, 
+                        currComponent.ConsoleToLocalSpace(mouseData.ConsoleLocation));
                     currComponent.OnMouseButtonDown(childMouseInfo);
                 }
             }
+
+            components.StartEnumeration();
+            foreach (var comp in components)
+            {
+                if (comp != currComponent)
+                {
+                    comp.OnMouseClickOutside(mouse.Button);
+                }
+            }
+            components.EndEnumeration();
         }
         
-        void console_KeyUp(object sender, EventArgs<KeyRawEventData> e)
+        public void OnKeyUp(KeyRawEventData kbData)
         {
-            StartIteration();
+            if (components.Count == 0)
+                return;
+
+            components.StartEnumeration();
             foreach (var comp in components)
             {
                 if (comp.KeyboardMode == KeyboardInputMode.Always || comp == currentFocus)
                 {
-                    comp.OnKeyUp(e.Value);
+                    comp.OnKeyUp(kbData);
                 }
             }
-            EndIteration();
+            components.EndEnumeration();
         }
 
-        void console_KeyDown(object sender, EventArgs<KeyRawEventData> e)
+        private Component GetNextFocus(Component after)
         {
             Component nextFocus = null;
-            StartIteration();
+
+            int start = components.IndexOf(after);
+            int i = start + 1;
+            if (i >= components.Count)
+                i = 0;
+
+            while (i != start)
+            {
+                if (components[i].CanHaveFocus)
+                {
+                    nextFocus = components[i];
+                }
+
+                i++;
+
+                if (i >= components.Count)
+                    i = 0;
+            }
+
+            return nextFocus;
+        }
+
+        public void OnKeyDown(KeyRawEventData kbData)
+        {
+            if (components.Count == 0)
+                return;
+
+            Component nextFocus = null;
+
+            components.StartEnumeration();
             foreach(var comp in components)
             {
                 if (comp == currentFocus)
                 {
-                    if (e.Value.Key == KeyCode.Tab && comp.CaptureTabKey == false)
+                    if (kbData.Key == KeyCode.Tab && comp.CaptureTabKey == false)
                     {
-                        // next to have focus
-                        int nextIndex = components.IndexOf(comp) + 1;
-                        if (nextIndex >= components.Count)
-                            nextIndex = 0;
+                        // find next to have focus
+                        nextFocus = GetNextFocus(comp);
 
-                        nextFocus = components[nextIndex];
+                        //int nextIndex = components.IndexOf(comp) + 1;
+                        //if (nextIndex >= components.Count)
+                        //    nextIndex = 0;
+
+                        //nextFocus = components[nextIndex];
                     }
                     else
                     {
-                        comp.OnKeyDown(e.Value);
+                        comp.OnKeyDown(kbData);
                     }
                 }
                 else if (comp.KeyboardMode == KeyboardInputMode.Always || comp == currentFocus)
                 {
-                    comp.OnKeyDown(e.Value);
+                    comp.OnKeyDown(kbData);
                 }
             }
-            EndIteration();
+            components.EndEnumeration();
+
+            if (kbData.Key == KeyCode.Tab && currentFocus == null)
+            {
+                nextFocus = GetNextFocus(components[0]);
+            }
 
             if (nextFocus != null)
                 nextFocus.TakeFocus();
-            else if (e.Value.Key == KeyCode.Tab) // tab key pushed but no one had current focus, set set focus to first component
-            {
-                components[0].TakeFocus();
-            }
+            //else if (kbData.Key == KeyCode.Tab) // tab key pushed but no one had current focus, set set focus to first component
+            //{
+            //    components[0].TakeFocus();
+            //}
         }
 
-        void console_KeyChar(object sender, EventArgs<KeyCharEventData> e)
+        public void OnKeyChar(KeyCharEventData kbData)
         {
-            StartIteration();
+            if (components.Count == 0)
+                return;
+
+            components.StartEnumeration();
             foreach (var comp in components)
             {
                 if (comp.KeyboardMode == KeyboardInputMode.Always || comp == currentFocus)
                 {
-                    comp.OnKeyChar(e.Value);
+                    comp.OnKeyChar(kbData);
                 }
             }
-            EndIteration();
+            components.EndEnumeration();
         }
     }
 }

@@ -60,7 +60,7 @@ namespace RLGui.Controls
             MaxValue = template.MaximumValue;
 
 
-            MaximumCharacters = ViewRect.Width;
+            MaximumCharacters = ClientRect.Width;
             CharValidation = RLGui.Controls.CharValidationFlags.Numbers;
         }
 

@@ -47,7 +47,7 @@ namespace RLGui.Controls
 
             ToolTipText = null;
 
-            Pigments = new ControlPigments()
+            Palette = new ControlPalette()
             {
                 BorderFocused = new Pigment(Color.Blue, Color.Black),
                 BorderMouseOver = new Pigment(Color.LightBlue, Color.Black)
@@ -78,7 +78,7 @@ namespace RLGui.Controls
         /// <summary>
         /// The default state pigments used for drawing
         /// </summary>
-        public ControlPigments Pigments { get; set; }
+        public ControlPalette Palette { get; set; }
 
         /// <summary>
         /// The minimum size of the control
@@ -96,6 +96,8 @@ namespace RLGui.Controls
         public KeyboardInputMode KeyboardMode { get; set; }
 
         public int Layer { get; set; }
+
+        public bool CanHaveFocus { get; set; }
 
         /// <summary>
         /// Override to return the size the control should be based other template values

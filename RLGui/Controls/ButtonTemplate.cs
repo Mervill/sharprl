@@ -36,7 +36,7 @@ namespace RLGui.Controls
             HAlignment = HorizontalAlignment.Left;
             VAlignment = VerticalAlignment.Center;
 
-            Pigments.BorderSelected = new Pigment(Color.LightBlue, Color.FromArgb(50, 50, 50));
+            Palette.BorderSelected = new Pigment(Color.LightBlue, Color.FromArgb(50, 50, 50));
 
         }
 

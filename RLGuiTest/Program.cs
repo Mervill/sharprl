@@ -13,10 +13,60 @@ namespace RLGuiTest
     {
         static void Main(string[] args)
         {
-            App app = new App();
+            //App app = new App();
 
-            app.Run();
+            //app.Run();
 
+            Program program = new Program();
+
+            program.Start();
+
+        }
+
+        GameConsole console;
+        FontSheet font;
+        View navigationView;
+
+        void Start()
+        {
+            console = new GameConsole(60, 40, "Gui Test", 800, 600);
+
+            console.IsWindowResizable = false;
+            console.VerticalSyncEnabled = true;
+
+            font = new FontSheet(console, "terminal16x16_gs_ro.png", TransparencyMethod.ByValue, FontMapping.InRow);
+
+            console.SetFont(font, true);
+
+            SetupNavigationView();
+
+            console.Run(null);
+
+            console.Dispose();
+        }
+
+        void SetupNavigationView()
+        {
+            navigationView = new View(new Rectangle(0, 37, 60, 3), console.Root);
+
+            navigationView.AddComponents(
+                new Button(new Point(0,0), new ButtonTemplate()
+                {
+                    Label = "Previous",
+                    MinimumSize = new Size(30,3),
+                    KeyboardMode = KeyboardInputMode.Never,
+                }),
+                new Button(new Point(30,0),new ButtonTemplate()
+                {
+                    Label = "Next",
+                    MinimumSize = new Size(30,3),
+                    KeyboardMode = KeyboardInputMode.Never
+                })
+                );
+
+            Dispatcher dispatch = new Dispatcher(console, navigationView);
+
+            dispatch.Start();
         }
     }
 
@@ -26,7 +76,7 @@ namespace RLGuiTest
 
         FontSheet font;
 
-        UIManager manager;
+        View mainView;
 
         public App()
         {
@@ -39,7 +89,8 @@ namespace RLGuiTest
 
             console.SetFont(font, true);
 
-            manager = new UIManager(console);
+            Rectangle viewport = new Rectangle(1, 1, 59, 39);
+            mainView = new View(viewport, console.Root);
 
             var panel = new MyPanel(new Rectangle(5,7,20,20));
 
@@ -76,7 +127,8 @@ namespace RLGuiTest
             var lb = new RadioBox(new Point(30, 15), new RadioBoxTemplate(listItems)
             {
                 RadioSetChar = (char)7,
-                RadioUnsetChar = (char)9
+                RadioUnsetChar = (char)9,
+                CanHaveFocus = true
             });
 
             var cb = new CheckButton(new Point(15,2),
@@ -107,9 +159,11 @@ namespace RLGuiTest
                 InitialValue = 0
             });
 
-            manager.AddComponents(panel, btn, cb, lb, eb, nb);
+            mainView.AddComponents(panel, btn, cb, lb, eb, nb);
 
-            manager.Start();
+            Dispatcher dispatch = new Dispatcher(console, mainView);
+
+            dispatch.Start();
         }
 
         void btn_Clicked(object sender, EventArgs e)
@@ -124,20 +178,31 @@ namespace RLGuiTest
                         new ItemData("Open Document"),
                         new ItemData("Pick this"),
                         new ItemData("Exit")
-                    }
+                    },
+                    CanHaveFocus = true
                 });
 
-            manager.AddComponents(menu);
+            mainView.AddComponents(menu);
+
+
         }
 
         public void Run()
         {
+            console.Drawing += console_Drawing;
+
             console.Run(null);
 
             console.Dispose();
         }
+
+        void console_Drawing(object sender, EventArgs<float> e)
+        {
+            
+        }
     }
 
+    
 
     class MyPanel : Widget
     {
@@ -147,7 +212,7 @@ namespace RLGuiTest
             Rectangle clientRect = new Rectangle(0, 0, Rect.Width, Rect.Height);
         }
 
-        protected override void OnPaint()
+        protected override void OnRedraw()
         {
             char thing = '*';
 

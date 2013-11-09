@@ -43,8 +43,8 @@ namespace RLGui.Controls
             RadioSetChar = template.RadioSetChar;
             RadioUnsetChar = template.RadioUnsetChar;
 
-            if (CurrentSelected < 1)
-                CurrentSelected = 1;
+            if (CurrentSelectedIndex < 1)
+                CurrentSelectedIndex = 1;
         }
 
         protected override void DrawContent()
@@ -55,14 +55,14 @@ namespace RLGui.Controls
             {
                 char ch;
 
-                if (i == CurrentSelected)
+                if (i == CurrentSelectedIndex)
                     ch = RadioSetChar;
                 else
                     ch = RadioUnsetChar;
 
-                if (i == CurrentSelected)
+                if (i == CurrentSelectedIndex)
                     pigment = Pigments.ViewSelected;
-                else if (i == CurrentHilighted)
+                else if (i == CurrentHilightedIndex)
                     pigment = Pigments.ViewMouseOver;
                 else
                     pigment = Pigments.ViewNormal;
@@ -74,8 +74,8 @@ namespace RLGui.Controls
                 else
                     label = string.Format("{0} {1}", this[i].Label, ch);
 
-                DrawingSurface.PrintStringAligned(ViewRect.X, ViewRect.Y + i,
-                    label, ViewRect.Width, HAlign, pigment.Foreground, pigment.Background);
+                DrawingSurface.PrintStringAligned(ClientRect.X, ClientRect.Y + i,
+                    label, ClientRect.Width, HAlign, pigment.Foreground, pigment.Background);
             }
         }
 

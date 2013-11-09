@@ -35,7 +35,7 @@ namespace RLGui.Controls
         public MenuBox(Point position, MenuBoxTemplate template)
             : base(position, template)
         {
-            CurrentSelected = -1;
+            CurrentSelectedIndex = -1;
         }
 
         protected override void OnPushed()
@@ -43,7 +43,7 @@ namespace RLGui.Controls
             base.OnPushed();
 
             if (ChooseItem != null)
-                ChooseItem(this, new ListItemEventArgs(CurrentSelected, this[CurrentSelected]));
+                ChooseItem(this, new ListItemEventArgs(CurrentSelectedIndex, this[CurrentSelectedIndex]));
 
             Close();
         }
@@ -65,6 +65,16 @@ namespace RLGui.Controls
             base.OnFocusReleased();
 
             Close();
+        }
+
+        protected internal override void OnMouseClickOutside(MouseButton button)
+        {
+            base.OnMouseClickOutside(button);
+
+            if (button == MouseButton.Left)
+            {
+                Close();
+            }
         }
 
         protected internal override void OnKeyDown(KeyRawEventData keyInfo)

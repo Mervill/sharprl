@@ -264,15 +264,15 @@ namespace RLGui.Controls
                 pigment = Pigments.ViewNormal;
             }
 
-            DrawingSurface.PrintStringAligned(ViewRect.X, ViewRect.Y, CurrentText,
-                ViewRect.Width, HAlignment,
+            DrawingSurface.PrintStringAligned(ClientRect.X, ClientRect.Y, CurrentText,
+                ClientRect.Width, HAlignment,
                 pigment.Foreground,pigment.Background);
 
             if (cursorOn && HasFocus)
             {
                 //Pigment curPigment = pigment.Invert();
 
-                DrawingSurface.PrintChar(ViewRect.X + CursorPos, ViewRect.Y,
+                DrawingSurface.PrintChar(ClientRect.X + CursorPos, ClientRect.Y,
                     CursorChar,
                     pigment.Foreground, pigment.Background);
 

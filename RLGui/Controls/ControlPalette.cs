@@ -24,19 +24,19 @@ using System.Collections.Generic;
 using SharpRL;
 using System.Drawing;
 
-namespace RLGui
+namespace RLGui.Controls
 {
     /// <summary>
     /// Pigments used by controls for drawing themselves
     /// </summary>
-    public class ControlPigments
+    public class ControlPalette
     {
         /// <summary>
         /// Creates a ControlPigments object, copying values from the given object
         /// The order in which states are checked for pigment are as follows: Selected, MouseOver, and Normal 
         /// </summary>
         /// <param name="from"></param>
-        public ControlPigments(ControlPigments from)
+        public ControlPalette(ControlPalette from)
         {
             if (from == null)
                 throw new ArgumentNullException("from");
@@ -55,7 +55,7 @@ namespace RLGui
         /// <summary>
         /// Construct a ControlPigments object
         /// </summary>
-        public ControlPigments()
+        public ControlPalette()
         {
             BorderMouseOver = Pigment.WhiteBlack;
             BorderNormal = Pigment.WhiteBlack;

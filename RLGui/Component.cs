@@ -112,6 +112,7 @@ namespace RLGui
         /// </summary>
         public event EventHandler<EventArgs<MouseMessageData>> MouseButtonDown;
 
+        public event EventHandler<EventArgs<MouseButton>> MouseButtonClickOutside;
         /// <summary>
         /// Fired when the mouse has moved while over this component
         /// </summary>
@@ -175,7 +176,7 @@ namespace RLGui
         public int Layer { get; private set; }
 
         /// <summary>
-        /// The current keyboard input mode, which determines when this component receives keyboard messages.
+        /// The keyboard input mode, which determines when this component receives keyboard messages.
         /// </summary>
         public KeyboardInputMode KeyboardMode { get; protected set; }
 
@@ -184,6 +185,8 @@ namespace RLGui
         /// cause the focus to move to the next available control instead.
         /// </summary>
         public bool CaptureTabKey { get; set; }
+
+        public bool CanHaveFocus { get; protected set; }
 
         /// <summary>
         /// True if this component has the current focus.
@@ -207,7 +210,7 @@ namespace RLGui
             if (hasFocus)
                 return;
 
-            manager.RequestTakeFocus(this);
+            view.RequestTakeFocus(this);
         }
 
         /// <summary>
@@ -219,7 +222,7 @@ namespace RLGui
             if (!hasFocus)
                 return;
 
-            manager.RequestReleaseFocus(this);
+            view.RequestReleaseFocus(this);
         }
 
         /// <summary>
@@ -230,7 +233,7 @@ namespace RLGui
         {
             OnClosing();
 
-            manager.RemoveComponent(this);
+            view.RemoveComponent(this);
         }
 
         /// <summary>
@@ -241,8 +244,8 @@ namespace RLGui
         {
             this.Layer = layer;
 
-            if (manager != null)
-                manager.needsSorting = true;
+            if (view != null)
+                view.ComponentLayerChanged();
         }
 
         /// <summary>
@@ -324,7 +327,15 @@ namespace RLGui
                 KeyChar(this, new EventArgs<KeyCharEventData>(keyInfo));
         }
 
-
+        /// <summary>
+        /// Called when a mouse button down occurs while the mouse is outside of this control.
+        /// </summary>
+        /// <param name="button"></param>
+        protected internal virtual void OnMouseClickOutside(MouseButton button)
+        {
+            if (MouseButtonClickOutside != null)
+                MouseButtonClickOutside(this, new EventArgs<MouseButton>(button));
+        }
 
         /// <summary>
         /// Called when the mouse pointer moves while over this component.
@@ -354,7 +365,7 @@ namespace RLGui
             if (MouseButtonDown != null)
                 MouseButtonDown(this, new EventArgs<MouseMessageData>(mouseInfo));
 
-            if (mouseInfo.Button == MouseButton.Left)
+            if (mouseInfo.Button == MouseButton.Left && CanHaveFocus)
             {
                 TakeFocus();
             }
@@ -491,7 +502,7 @@ namespace RLGui
         /// memory surface and then blit that surface to the Root during OnRender
         /// Override to provide custom drawing code after calling base method
         /// </summary>
-        protected internal abstract void OnPaint();
+        protected internal abstract void OnRedraw();
 
         /// <summary>
         /// Called when this component should actually put its contents onto to the console surface, which
@@ -502,7 +513,7 @@ namespace RLGui
 
 
 
-        internal UIManager manager;
+        internal View view;
         private bool hasFocus;
 
     }

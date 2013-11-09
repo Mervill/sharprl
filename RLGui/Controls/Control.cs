@@ -42,7 +42,7 @@ namespace RLGui.Controls
         /// <summary>
         /// The pigments used when the control is drawn
         /// </summary>
-        public ControlPigments Pigments { get; private set; }
+        public ControlPalette Pigments { get; private set; }
 
         /// <summary>
         /// Gets the tooltip string displayed when hovering over this control.  Return null or empty
@@ -84,7 +84,7 @@ namespace RLGui.Controls
         /// a Rectangle starting at 1,1 and sized to fit inside the frame. If there is no frame, then this will
         /// return a Rectangle at 0,0 and the same size as the entire Control.
         /// </summary>
-        protected Rectangle ViewRect { get; private set; }
+        protected Rectangle ClientRect { get; private set; }
 
         public bool IsBeingPushed { get; private set; }
 
@@ -94,10 +94,10 @@ namespace RLGui.Controls
         protected Control(Point position, ControlTemplate template)
             :base(position, template.GetFinalSize())
         {
-            Pigments = template.Pigments;
+            Pigments = template.Palette;
 
             if (Pigments == null)
-                Pigments = new ControlPigments();
+                Pigments = new ControlPalette();
 
             
             FrameDefinition = template.FrameDefinition;
@@ -106,16 +106,17 @@ namespace RLGui.Controls
             toolTipText = template.ToolTipText;
             KeyboardMode = template.KeyboardMode;
             SetLayer(template.Layer);
+            CanHaveFocus = template.CanHaveFocus;
 
             HasFrame = template.HasFrame;
 
             if (HasFrame)
             {
-                ViewRect = new Rectangle(new Point(1, 1), new Size(Size.Width - 2, Size.Height - 2));
+                ClientRect = new Rectangle(new Point(1, 1), new Size(Size.Width - 2, Size.Height - 2));
             }
             else
             {
-                ViewRect = new Rectangle(new Point(0, 0), Size);
+                ClientRect = new Rectangle(new Point(0, 0), Size);
             }
         }
 
@@ -124,7 +125,7 @@ namespace RLGui.Controls
         /// For custom drawing, override DrawContent, DrawFrame, and DrawFrameTitle instead of this method.
         /// To customize colors, override GetCurrentViewPigment and GetCurrentBorderPigment
         /// </summary>
-        protected internal override void OnPaint()
+        protected internal override void OnRedraw()
         {
             DrawContent();
 
@@ -285,7 +286,6 @@ namespace RLGui.Controls
                 DoPush();
             }
         }
-
 
         protected internal override void OnMouseLeave()
         {

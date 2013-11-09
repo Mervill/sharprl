@@ -111,18 +111,40 @@ namespace RLGui.Controls
             items = template.Items;
             HAlign = template.HAlign;
 
-            CurrentSelected = template.InitialSelected;
-            CurrentHilighted = -1;
+            CurrentSelectedIndex = template.InitialSelected;
+            CurrentHilightedIndex = -1;
 
-            if (CurrentSelected < 0 || CurrentSelected >= items.Count)
-                CurrentSelected = -1;
+            if (CurrentSelectedIndex < 0 || CurrentSelectedIndex >= items.Count)
+                CurrentSelectedIndex = -1;
         }
 
         public HorizontalAlignment HAlign { get; set; }
 
-        public int CurrentSelected { get; protected set; }
+        public int CurrentSelectedIndex { get; protected set; }
 
-        public int CurrentHilighted { get; private set; }
+        public int CurrentHilightedIndex { get; private set; }
+
+        public ItemData CurrentSelected
+        {
+            get
+            {
+                if (CurrentSelectedIndex == -1)
+                    return null;
+
+                return items[CurrentSelectedIndex];
+            }
+        }
+
+        public ItemData CurrentHilighted
+        {
+            get
+            {
+                if (CurrentHilightedIndex == -1)
+                    return null;
+
+                return items[CurrentHilightedIndex];
+            }
+        }
 
         public ItemData this[int index]
         {
@@ -139,30 +161,30 @@ namespace RLGui.Controls
 
         protected void DoChangeSelected(int index)
         {
-            if (CurrentSelected == index)
+            if (CurrentSelectedIndex == index)
                 return;
 
-            CurrentSelected = index;
+            CurrentSelectedIndex = index;
             OnSelectedItemChanged();
         }
 
         protected void DoChangeHilighted(int index)
         {
-            if (CurrentHilighted == index)
+            if (CurrentHilightedIndex == index)
                 return;
 
 
-            CurrentHilighted = index;
+            CurrentHilightedIndex = index;
 
             OnMouseOverItem();
 
         }
 
-        protected virtual int GetItemIndexAt(Point localPos)
+        public int GetItemIndexAt(Point localPos)
         {
-            if (ViewRect.Contains(localPos))
+            if (ClientRect.Contains(localPos))
             {
-                return localPos.Y - ViewRect.Y;
+                return localPos.Y - ClientRect.Y;
             }
             else
             {
@@ -176,7 +198,7 @@ namespace RLGui.Controls
 
             if (keyInfo.Key == KeyCode.Down)
             {
-                int next = CurrentSelected + 1;
+                int next = CurrentSelectedIndex + 1;
                 if (next >= Count)
                 {
                     next = 0;
@@ -185,7 +207,7 @@ namespace RLGui.Controls
             }
             else if (keyInfo.Key == KeyCode.Up)
             {
-                int next = CurrentSelected - 1;
+                int next = CurrentSelectedIndex - 1;
                 if (next < 0)
                 {
                     next = Count - 1;
@@ -200,9 +222,9 @@ namespace RLGui.Controls
 
             int index = GetItemIndexAt(mouseInfo.LocalPos);
 
-            if (CurrentHilighted != index)
+            if (CurrentHilightedIndex != index)
             {
-                CurrentHilighted = index;
+                CurrentHilightedIndex = index;
 
                 OnMouseOverItem();
             }
@@ -211,14 +233,14 @@ namespace RLGui.Controls
         protected virtual void OnMouseOverItem()
         {
             if (HilightedItemChanged != null)
-                HilightedItemChanged(this, new ListItemEventArgs(CurrentHilighted, items[CurrentHilighted]));
+                HilightedItemChanged(this, new ListItemEventArgs(CurrentHilightedIndex, items[CurrentHilightedIndex]));
         }
 
         protected internal override void OnMouseLeave()
         {
             base.OnMouseLeave();
 
-            CurrentHilighted = -1;
+            CurrentHilightedIndex = -1;
         }
 
         protected override void OnPushed()
@@ -239,16 +261,16 @@ namespace RLGui.Controls
         protected virtual void OnSelectedItemChanged()
         {
             if (SelectedItemChanged != null)
-                SelectedItemChanged(this, new ListItemEventArgs(CurrentSelected, items[CurrentSelected]));
+                SelectedItemChanged(this, new ListItemEventArgs(CurrentSelectedIndex, items[CurrentSelectedIndex]));
         }
 
         public override string ToolTipText
         {
             get
             {
-                if (CurrentHilighted != -1)
+                if (CurrentHilighted != null)
                 {
-                    return items[CurrentHilighted].Tooltip;
+                    return CurrentHilighted.Tooltip;
                 }
                 else
                 {
@@ -263,16 +285,17 @@ namespace RLGui.Controls
 
             for (int i = 0; i < Count; i++)
             {
-                if (i == CurrentSelected)
+                if (i == CurrentSelectedIndex)
                     pigment = Pigments.ViewSelected;
-                else if (i == CurrentHilighted)
+                else if (i == CurrentHilightedIndex)
                     pigment = Pigments.ViewMouseOver;
                 else
                     pigment = Pigments.ViewNormal;
 
-                DrawingSurface.PrintStringAligned(ViewRect.X, ViewRect.Y + i,
-                    items[i].Label, ViewRect.Width, HAlign, pigment.Foreground, pigment.Background);
+                DrawingSurface.PrintStringAligned(ClientRect.X, ClientRect.Y + i,
+                    items[i].Label, ClientRect.Width, HAlign, pigment.Foreground, pigment.Background);
             }
         }
+
     }
 }

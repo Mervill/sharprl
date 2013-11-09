@@ -40,8 +40,8 @@ namespace RLGui.Controls
 
             HAlign = HorizontalAlignment.Left;
 
-            Pigments.ViewMouseOver = new Pigment(Color.Gold, Color.Black);
-            Pigments.ViewSelected = new Pigment(Color.Black, Color.White);
+            Palette.ViewMouseOver = new Pigment(Color.Gold, Color.Black);
+            Palette.ViewSelected = new Pigment(Color.Black, Color.White);
 
         }
 
