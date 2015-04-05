@@ -1,0 +1,1 @@
+SharpRL is a C#/.NET library intended to ease the creation of rogue-like games.  SharpRL provides a rendering backend based on OpenTK/OpenGL for drawing "console" type characters in true-color.  SharpRL also includes a minimal tile/sprite rendering system together with some helper classes useful in Roguelikes - such as Field-of-view, A-star, and others.
